@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Release Process Hold #{{ hold.id }} - QualiTrack{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <a href="{% url 'job_detail' pk=job.id %}" class="text-decoration-none text-muted small">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Order {{ job.job_number }}
+                </a>
+                <h2 class="h3 fw-bold mt-1 mb-0 text-success">Release Operational Process Hold</h2>
+                <p class="text-muted small mb-0">Document corrective actions taken to resolve the hold and unlock dispatch readiness.</p>
+            </div>
+            <div>
+                <span class="badge bg-success px-3 py-2 fs-6">
+                    <i class="bi bi-unlock me-1"></i> Resolution Gate
+                </span>
+            </div>
+        </div>
+
+        <!-- Current Hold Details -->
+        <div class="card mb-4 border-warning">
+            <div class="card-header bg-warning bg-opacity-10 py-3">
+                <span class="fw-bold text-dark"><i class="bi bi-exclamation-circle-fill text-warning me-2"></i>Hold Details to Release</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <span class="text-muted small">Production Order:</span>
+                    <strong>{{ job.job_number }} &bull; {{ job.product_name }}</strong>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted small">Placed By:</span>
+                    <span>{{ hold.placed_by.username }} on {{ hold.placed_at|date:"F d, Y @ H:i" }}</span>
+                </div>
+                <div class="p-3 bg-light rounded border small">
+                    <strong class="d-block mb-1 text-danger">Original Reason for Hold:</strong>
+                    {{ hold.reason }}
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" novalidate>
+            {% csrf_token %}
+
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-success bg-opacity-10 py-3">
+                    <span class="fw-bold text-success"><i class="bi bi-check2-circle me-2"></i>Resolution Audit Documentation</span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.release_notes.id_for_label }}" class="form-label fw-semibold">
+                            Corrective Action & Resolution Notes
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.release_notes }}
+                        {% if form.release_notes.errors %}
+                            <div class="text-danger small mt-1">{{ form.release_notes.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">
+                            Detail the root cause investigation, rework performed, or re-inspection that justifies releasing this hold.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded-3 border shadow-sm">
+                <a href="{% url 'job_detail' pk=job.id %}" class="btn btn-outline-secondary fw-semibold px-4">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-success btn-lg fw-bold px-5 shadow">
+                    <i class="bi bi-unlock me-1"></i> Document & Release Hold
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

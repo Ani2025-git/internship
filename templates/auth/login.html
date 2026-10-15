@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - QualiTrack Factory QC{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-card {
+        max-width: 520px;
+        margin: 1rem auto;
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+        overflow: hidden;
+    }
+    .login-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        padding: 2.25rem 2rem 1.75rem 2rem;
+        color: white;
+        text-align: center;
+        border-bottom: 3px solid #f59e0b;
+    }
+    .role-option-card {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.75rem 0.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #f8fafc;
+    }
+    .role-option-card:hover {
+        border-color: #94a3b8;
+        background: #f1f5f9;
+    }
+    .btn-check:checked + .role-option-card {
+        border-color: #2563eb;
+        background-color: #eff6ff;
+        color: #1d4ed8;
+        font-weight: 700;
+        box-shadow: 0 0 0 1px #2563eb;
+    }
+    .demo-chip {
+        cursor: pointer;
+        transition: transform 0.1s ease;
+        font-size: 0.8rem;
+    }
+    .demo-chip:hover {
+        transform: translateY(-1px);
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12">
+        <div class="card login-card">
+            
+            <!-- Branded Header -->
+            <div class="login-header">
+                <div class="d-inline-flex align-items-center justify-content-center bg-warning text-dark rounded-circle p-2 mb-2" style="width: 50px; height: 50px;">
+                    <i class="bi bi-shield-lock-fill fs-3"></i>
+                </div>
+                <h3 class="fw-bold mb-1">Quali<span class="text-warning">Track</span></h3>
+                <p class="text-white-50 small mb-0">Factory Quality & Dispatch Management System</p>
+            </div>
+
+            <!-- Login Body -->
+            <div class="card-body p-4 p-md-4">
+                <form method="POST" action="{% url 'login' %}" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Form Non-field Errors (e.g. Invalid credentials or Role mismatch) -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger py-2 px-3 small mb-3">
+                            {% for error in form.non_field_errors %}
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+                                    <span>{{ error }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Step 1: Select Role -->
+                    <label class="form-label fw-bold small text-uppercase text-secondary mb-2">
+                        1. Select Your Factory Role
+                    </label>
+
+                    <div class="row g-2 mb-3">
+                        <!-- Inspector Role Option -->
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="role" id="role_inspector" value="INSPECTOR"
+                                {% if form.role.value == 'INSPECTOR' or not form.role.value %}checked{% endif %}>
+                            <label class="role-option-card d-block" for="role_inspector">
+                                <i class="bi bi-clipboard2-pulse fs-4 text-primary d-block mb-1"></i>
+                                <span class="d-block small">Inspector</span>
+                            </label>
+                        </div>
+
+                        <!-- Supervisor Role Option -->
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="role" id="role_supervisor" value="SUPERVISOR"
+                                {% if form.role.value == 'SUPERVISOR' %}checked{% endif %}>
+                            <label class="role-option-card d-block" for="role_supervisor">
+                                <i class="bi bi-person-check fs-4 text-warning d-block mb-1"></i>
+                                <span class="d-block small">Supervisor</span>
+                            </label>
+                        </div>
+
+                        <!-- Admin Role Option -->
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="role" id="role_admin" value="ADMIN"
+                                {% if form.role.value == 'ADMIN' %}checked{% endif %}>
+                            <label class="role-option-card d-block" for="role_admin">
+                                <i class="bi bi-shield-lock fs-4 text-danger d-block mb-1"></i>
+                                <span class="d-block small">Admin</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    {% if form.role.errors %}
+                        <div class="text-danger small mb-2">{{ form.role.errors.0 }}</div>
+                    {% endif %}
+
+                    <!-- Step 2: Credentials -->
+                    <label class="form-label fw-bold small text-uppercase text-secondary mb-2">
+                        2. Enter Credentials
+                    </label>
+
+                    <!-- Username Field -->
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label small fw-semibold">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            {{ form.username }}
+                        </div>
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label small fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0">
+                                <i class="bi bi-key"></i>
+                            </span>
+                            {{ form.password }}
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Dashboard
+                    </button>
+                </form>
+
+                <!-- Quick Seeded Credentials Demo Helper -->
+                <div class="mt-4 pt-3 border-top">
+                    <div class="text-muted small fw-semibold mb-2 text-center">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quick Test Accounts (Click to Fill):
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-primary btn-sm demo-chip" onclick="fillCredentials('inspector1', 'inspector123', 'INSPECTOR')">
+                            <i class="bi bi-person-fill"></i> Inspector
+                        </button>
+                        <button type="button" class="btn btn-outline-warning btn-sm text-dark demo-chip" onclick="fillCredentials('supervisor1', 'supervisor123', 'SUPERVISOR')">
+                            <i class="bi bi-check-circle-fill"></i> Supervisor
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm demo-chip" onclick="fillCredentials('admin', 'admin123', 'ADMIN')">
+                            <i class="bi bi-shield-fill"></i> Admin
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Designer Credit -->
+                <div class="text-center mt-3 pt-2 text-muted small">
+                    <span style="font-size: 0.8rem;">Designed by <strong>Animesh Mishra</strong></span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function fillCredentials(user, pass, role) {
+        document.getElementById('id_username').value = user;
+        document.getElementById('id_password').value = pass;
+        
+        // Select matching role radio button
+        if (role === 'INSPECTOR') {
+            document.getElementById('role_inspector').checked = true;
+        } else if (role === 'SUPERVISOR') {
+            document.getElementById('role_supervisor').checked = true;
+        } else if (role === 'ADMIN') {
+            document.getElementById('role_admin').checked = true;
+        }
+    }
+</script>
+{% endblock %}

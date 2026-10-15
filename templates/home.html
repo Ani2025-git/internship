@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}QualiTrack - Factory Quality & Dispatch Management{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+
+        <!-- Welcome Hero Banner -->
+        <div class="card text-white p-4 mb-4 border-0 shadow" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #1e3a8a 100%);">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div>
+                        <span class="badge bg-success bg-opacity-25 text-success border border-success mb-2 px-3 py-2 fw-semibold">
+                            <i class="bi bi-shield-check me-1"></i> Full System Active & Verified
+                        </span>
+                        <h1 class="h2 fw-bold mb-0">Quali<span class="text-warning">Track</span></h1>
+                        <p class="h5 fw-normal text-white-50 mt-1 mb-2">Factory Quality & Dispatch Management System</p>
+                        <p class="mb-0 text-white-50 small">
+                            Internship Project for <strong>Zapuza Technologies LLP</strong> &bull; Designed & Developed by <strong>Animesh Mishra</strong>
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <a href="{% url 'login' %}" class="btn btn-warning btn-lg fw-bold shadow-sm text-dark px-4">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Enter Factory Portal
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4 Core Features Status Overview -->
+        <div class="card mb-4">
+            <div class="card-header card-header-custom py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold text-dark">
+                    <i class="bi bi-layers-half text-primary me-2"></i> Operational Core Features (100% Implemented)
+                </h5>
+                <span class="badge bg-success px-3 py-2">Features 1-4 Complete</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+
+                    <!-- Feature 1 -->
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 h-100 bg-light border-success">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2">Feature 1</span>
+                                    <h6 class="mb-0 fw-bold">Login & Role Management</h6>
+                                </div>
+                                <span class="badge bg-success"><i class="bi bi-check2"></i> Live</span>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                Role-based access for <strong>Admin</strong>, <strong>Inspector</strong>, and <strong>Supervisor</strong>. Prevents role impersonation and secures views.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 h-100 bg-light border-success">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-info text-dark me-2">Feature 2</span>
+                                    <h6 class="mb-0 fw-bold">Inspection Management</h6>
+                                </div>
+                                <span class="badge bg-success"><i class="bi bi-check2"></i> Live</span>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                Inspectors record measurements with metric precision. Real-time auto PASS/FAIL logic. Mandatory <strong>≥ 2 defect photos</strong> if measurement is out-of-tolerance.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 h-100 bg-light border-success">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-warning text-dark me-2">Feature 3</span>
+                                    <h6 class="mb-0 fw-bold">Supervisor Approval</h6>
+                                </div>
+                                <span class="badge bg-success"><i class="bi bi-check2"></i> Live</span>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                Supervisors review pending inspections. Decisions: Approve, Reject, or Return with mandatory remarks. Anti-self-approval security policy strictly enforced.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 4 -->
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 h-100 bg-light border-success">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">Feature 4</span>
+                                    <h6 class="mb-0 fw-bold">Dispatch Clearance & Holds</h6>
+                                </div>
+                                <span class="badge bg-success"><i class="bi bi-check2"></i> Live</span>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                Real-time 4-rule checklist validation. Placing and releasing process holds with resolution notes. Official clearance certification with audit trail.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Demonstration Quick Accounts -->
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary bg-opacity-10 py-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-primary">
+                    <i class="bi bi-people-fill me-2"></i>Seeded Test Role Accounts & Direct Login
+                </span>
+                <span class="badge bg-primary">Ready to Test</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Inspector Card -->
+                    <div class="col-md-4">
+                        <div class="card h-100 p-3 border-start border-primary border-4 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge role-badge-inspector">INSPECTOR</span>
+                                <small class="text-muted">Quality Control</small>
+                            </div>
+                            <div class="small mb-2">
+                                <strong>Username:</strong> <code>inspector1</code><br>
+                                <strong>Password:</strong> <code>inspector123</code>
+                            </div>
+                            <p class="text-muted small mb-3">Record measurements, test auto PASS/FAIL calculation, attach mandatory defect photos.</p>
+                            <a href="{% url 'login' %}?role=INSPECTOR" class="btn btn-outline-primary btn-sm fw-semibold w-100 mt-auto">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Login as Inspector
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Supervisor Card -->
+                    <div class="col-md-4">
+                        <div class="card h-100 p-3 border-start border-warning border-4 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge role-badge-supervisor">SUPERVISOR</span>
+                                <small class="text-muted">Review & Authority</small>
+                            </div>
+                            <div class="small mb-2">
+                                <strong>Username:</strong> <code>supervisor1</code><br>
+                                <strong>Password:</strong> <code>supervisor123</code>
+                            </div>
+                            <p class="text-muted small mb-3">Review pending inspections, approve/reject/return, place/release holds, authorize dispatch.</p>
+                            <a href="{% url 'login' %}?role=SUPERVISOR" class="btn btn-outline-warning text-dark btn-sm fw-semibold w-100 mt-auto">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Login as Supervisor
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Admin Card -->
+                    <div class="col-md-4">
+                        <div class="card h-100 p-3 border-start border-danger border-4 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge role-badge-admin">ADMIN</span>
+                                <small class="text-muted">Executive Oversight</small>
+                            </div>
+                            <div class="small mb-2">
+                                <strong>Username:</strong> <code>admin</code><br>
+                                <strong>Password:</strong> <code>admin123</code>
+                            </div>
+                            <p class="text-muted small mb-3">Full oversight: users, production orders, quality inspections, process holds, Django admin portal.</p>
+                            <a href="{% url 'login' %}?role=ADMIN" class="btn btn-outline-danger btn-sm fw-semibold w-100 mt-auto">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Login as Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

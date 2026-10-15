@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Executive Control - QualiTrack{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge role-badge-admin px-2 py-1 fs-6">
+                <i class="bi bi-shield-lock-fill me-1"></i> Admin Workspace
+            </span>
+            <span class="text-muted small">| Logged in as: <strong>{{ request.user.username }}</strong></span>
+        </div>
+        <h2 class="h3 fw-bold mb-0">Factory Operations Oversight & System Control</h2>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="{% url 'job_create' %}" class="btn btn-primary fw-semibold shadow-sm me-2">
+            <i class="bi bi-plus-circle me-1"></i> New Batch
+        </a>
+        <a href="/admin/" target="_blank" class="btn btn-outline-dark fw-semibold shadow-sm">
+            <i class="bi bi-gear-wide-connected me-1"></i> Django Admin
+        </a>
+    </div>
+</div>
+
+<!-- System Statistics -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card p-3 border-start border-primary border-4 shadow-sm">
+            <div class="text-muted small fw-semibold">TOTAL PRODUCTION JOBS</div>
+            <div class="d-flex align-items-center justify-content-between mt-2">
+                <span class="h3 fw-bold mb-0 text-primary">{{ total_jobs }}</span>
+                <i class="bi bi-box-seam fs-2 text-primary"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card p-3 border-start border-success border-4 shadow-sm">
+            <div class="text-muted small fw-semibold">CLEARED FOR DISPATCH</div>
+            <div class="d-flex align-items-center justify-content-between mt-2">
+                <span class="h3 fw-bold mb-0 text-success">{{ cleared_jobs }}</span>
+                <i class="bi bi-check2-all fs-2 text-success"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card p-3 border-start border-info border-4 shadow-sm">
+            <div class="text-muted small fw-semibold">TOTAL INSPECTIONS</div>
+            <div class="d-flex align-items-center justify-content-between mt-2">
+                <span class="h3 fw-bold mb-0 text-info">{{ total_inspections }}</span>
+                <i class="bi bi-clipboard2-check fs-2 text-info"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card p-3 border-start border-danger border-4 shadow-sm">
+            <div class="text-muted small fw-semibold">ACTIVE PROCESS HOLDS</div>
+            <div class="d-flex align-items-center justify-content-between mt-2">
+                <span class="h3 fw-bold mb-0 text-danger">{{ active_holds }}</span>
+                <i class="bi bi-slash-circle-fill fs-2 text-danger"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section 1: Factory Staff & Role Directory -->
+<div class="card mb-4">
+    <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="card-title fw-bold mb-0">
+                <i class="bi bi-people-fill text-primary me-2"></i>Factory Personnel & Role Directory
+            </h5>
+            <small class="text-muted">Role-based access determines permissions on the factory floor</small>
+        </div>
+        <a href="/admin/auth/user/add/" target="_blank" class="btn btn-sm btn-outline-primary fw-semibold">
+            <i class="bi bi-person-plus me-1"></i> Add New User
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Username</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Factory Role</th>
+                        <th>Status</th>
+                        <th>Registered</th>
+                        <th class="text-end pe-3">Manage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for profile in users %}
+                        <tr>
+                            <td class="ps-3 fw-bold text-dark">
+                                <i class="bi bi-person-circle text-secondary me-1"></i>
+                                {{ profile.user.username }}
+                            </td>
+                            <td>{{ profile.user.get_full_name|default:"-" }}</td>
+                            <td class="text-muted small">{{ profile.user.email|default:"-" }}</td>
+                            <td>
+                                {% if profile.role == 'INSPECTOR' %}
+                                    <span class="badge role-badge-inspector">Inspector</span>
+                                {% elif profile.role == 'SUPERVISOR' %}
+                                    <span class="badge role-badge-supervisor">Supervisor</span>
+                                {% elif profile.role == 'ADMIN' %}
+                                    <span class="badge role-badge-admin">Admin</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ profile.role }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if profile.user.is_active %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Disabled</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ profile.user.date_joined|date:"M d, Y" }}</td>
+                            <td class="text-end pe-3">
+                                <a href="/admin/auth/user/{{ profile.user.id }}/change/" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-pencil-square"></i> Edit in Admin
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No users registered.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Section 2: Production Orders & Dispatch State -->
+<div class="card mb-4">
+    <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="card-title fw-bold mb-0">
+                <i class="bi bi-boxes text-secondary me-2"></i>Production Orders & Dispatch Clearance
+            </h5>
+            <small class="text-muted">High-level operational overview</small>
+        </div>
+        <a href="{% url 'job_create' %}" class="btn btn-sm btn-outline-primary fw-semibold">
+            <i class="bi bi-plus-lg me-1"></i> Add Production Job
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Job Number</th>
+                        <th>Product Description</th>
+                        <th>Quantity</th>
+                        <th>Inspections</th>
+                        <th>Clearance Status</th>
+                        <th>Created</th>
+                        <th class="text-end pe-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs %}
+                        <tr>
+                            <td class="ps-3 fw-bold">
+                                <a href="{% url 'job_detail' pk=job.id %}" class="text-primary text-decoration-none">
+                                    {{ job.job_number }}
+                                </a>
+                            </td>
+                            <td>{{ job.product_name }}</td>
+                            <td>{{ job.target_quantity }} units</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ job.inspections.count }} recorded</span>
+                            </td>
+                            <td>
+                                {% if job.dispatch_status == 'CLEARED' %}
+                                    <span class="badge bg-success"><i class="bi bi-check2"></i> Cleared</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pending Clearance</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ job.created_at|date:"M d, Y" }}</td>
+                            <td class="text-end pe-3">
+                                <a href="{% url 'job_detail' pk=job.id %}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-eye"></i> View Order
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Section 3: Recent Quality Inspections Audit -->
+<div class="card mb-4">
+    <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="card-title fw-bold mb-0">
+                <i class="bi bi-clipboard2-pulse text-info me-2"></i>Recent Factory Quality Inspections Audit
+            </h5>
+            <small class="text-muted">Auto PASS/FAIL calculation & supervisor review status</small>
+        </div>
+        <a href="{% url 'inspection_create' %}" class="btn btn-sm btn-outline-primary fw-semibold">
+            <i class="bi bi-plus-circle me-1"></i> Record Inspection
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">ID</th>
+                        <th>Batch Job</th>
+                        <th>Parameter</th>
+                        <th>Measurement</th>
+                        <th>Tolerances</th>
+                        <th>Auto Result</th>
+                        <th>Supervisor Status</th>
+                        <th>Inspector</th>
+                        <th class="text-end pe-3">Audit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insp in recent_inspections %}
+                        <tr>
+                            <td class="ps-3 text-muted">#{{ insp.id }}</td>
+                            <td class="fw-semibold">
+                                <a href="{% url 'job_detail' pk=insp.job.id %}" class="text-decoration-none">
+                                    {{ insp.job.job_number }}
+                                </a>
+                            </td>
+                            <td>{{ insp.parameter_name }}</td>
+                            <td class="fw-bold">{{ insp.measurement }} mm</td>
+                            <td class="text-muted small">[{{ insp.min_limit }} - {{ insp.max_limit }}]</td>
+                            <td>
+                                {% if insp.calculated_result == 'PASS' %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>PASS</span>
+                                {% else %}
+                                    <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>FAIL</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if insp.status == 'APPROVED' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif insp.status == 'REJECTED' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% elif insp.status == 'RETURNED' %}
+                                    <span class="badge bg-warning text-dark">Returned</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">{{ insp.inspector.username }}</td>
+                            <td class="text-end pe-3">
+                                <a href="{% url 'inspection_detail' pk=insp.id %}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                {% if insp.status == 'PENDING' %}
+                                    <a href="{% url 'inspection_review' pk=insp.id %}" class="btn btn-warning btn-sm fw-semibold ms-1">
+                                        Review
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                <i class="bi bi-clipboard-x fs-3 d-block mb-1"></i>
+                                No inspections logged in the system yet.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Production Order - QualiTrack{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <a href="{% url 'dashboard_redirect' %}" class="text-decoration-none text-muted small">
+                    <i class="bi bi-arrow-left me-1"></i> Return to Dashboard
+                </a>
+                <h2 class="h3 fw-bold mt-1 mb-0">Create Production Order Batch</h2>
+                <p class="text-muted small mb-0">Initialize a new manufacturing order in the quality tracking system.</p>
+            </div>
+            <div>
+                <span class="badge bg-secondary px-3 py-2 fs-6">
+                    <i class="bi bi-box-seam me-1"></i> New Batch
+                </span>
+            </div>
+        </div>
+
+        <form method="POST" novalidate>
+            {% csrf_token %}
+
+            <div class="card mb-4">
+                <div class="card-header card-header-custom">
+                    <i class="bi bi-card-checklist text-primary me-2"></i>Order Specifications
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.job_number.id_for_label }}" class="form-label fw-semibold">Job / Batch Number</label>
+                        {{ form.job_number }}
+                        {% if form.job_number.errors %}
+                            <div class="text-danger small mt-1">{{ form.job_number.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Unique identifier (e.g., JOB-2026-004).</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.product_name.id_for_label }}" class="form-label fw-semibold">Product Name / Component Title</label>
+                        {{ form.product_name }}
+                        {% if form.product_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.product_name.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">e.g., High-Pressure Valve Body 45mm.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.target_quantity.id_for_label }}" class="form-label fw-semibold">Target Batch Quantity (units)</label>
+                        {{ form.target_quantity }}
+                        {% if form.target_quantity.errors %}
+                            <div class="text-danger small mt-1">{{ form.target_quantity.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Planned production units to manufacture.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded-3 border shadow-sm">
+                <a href="{% url 'dashboard_redirect' %}" class="btn btn-outline-secondary fw-semibold px-4">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg fw-bold px-5 shadow">
+                    <i class="bi bi-plus-circle me-1"></i> Create Production Batch
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

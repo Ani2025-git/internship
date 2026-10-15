@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block title %}Inspection #{{ inspection.id }} - QualiTrack{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+
+        <!-- Top Breadcrumb & Action Bar -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+            <div>
+                <a href="{% url 'dashboard_redirect' %}" class="text-decoration-none text-muted small">
+                    <i class="bi bi-arrow-left me-1"></i> Return to Dashboard
+                </a>
+                <h2 class="h3 fw-bold mt-1 mb-0">
+                    Inspection #{{ inspection.id }} &bull; 
+                    <span class="text-primary">{{ inspection.job.job_number }}</span>
+                </h2>
+                <div class="text-muted small">
+                    Recorded on {{ inspection.created_at|date:"F d, Y @ H:i" }} by 
+                    <strong>{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}</strong>
+                </div>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="{% url 'job_detail' pk=inspection.job.id %}" class="btn btn-outline-secondary btn-sm fw-semibold">
+                    <i class="bi bi-box-seam me-1"></i> View Order Details
+                </a>
+                {% if user.profile.is_supervisor or user.profile.is_admin or user.is_superuser %}
+                    {% if inspection.status == 'PENDING' %}
+                        <a href="{% url 'inspection_review' pk=inspection.id %}" class="btn btn-warning btn-sm fw-bold shadow-sm">
+                            <i class="bi bi-pencil-square me-1"></i> Review & Sign Off
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Result Overview Banner -->
+        <div class="row g-3 mb-4">
+            <!-- Result Badge Card -->
+            <div class="col-md-6">
+                <div class="card h-100 p-4 border-0 shadow-sm {% if inspection.calculated_result == 'PASS' %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-uppercase small fw-bold opacity-75">Automated Quality Verification</div>
+                            <h3 class="display-6 fw-bold mb-0 mt-1">
+                                {% if inspection.calculated_result == 'PASS' %}
+                                    <i class="bi bi-check-circle-fill me-2"></i>PASS
+                                {% else %}
+                                    <i class="bi bi-x-circle-fill me-2"></i>FAIL
+                                {% endif %}
+                            </h3>
+                            <p class="mb-0 mt-2 small opacity-90">
+                                {% if inspection.calculated_result == 'PASS' %}
+                                    Measured dimension is strictly within acceptable factory tolerance limits.
+                                {% else %}
+                                    Measurement out of tolerance. Non-conformance defect photos documented.
+                                {% endif %}
+                            </p>
+                        </div>
+                        <i class="bi {% if inspection.calculated_result == 'PASS' %}bi-shield-fill-check{% else %}bi-shield-fill-x{% endif %} fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supervisor Status Card -->
+            <div class="col-md-6">
+                <div class="card h-100 p-4 shadow-sm border-start border-4 {% if inspection.status == 'APPROVED' %}border-success{% elif inspection.status == 'REJECTED' %}border-danger{% elif inspection.status == 'RETURNED' %}border-warning{% else %}border-secondary{% endif %}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small fw-bold text-uppercase">Supervisor Sign-off Status</div>
+                            <h4 class="fw-bold mb-1 mt-1">
+                                {% if inspection.status == 'APPROVED' %}
+                                    <span class="text-success"><i class="bi bi-patch-check-fill me-1"></i>Approved</span>
+                                {% elif inspection.status == 'REJECTED' %}
+                                    <span class="text-danger"><i class="bi bi-x-octagon-fill me-1"></i>Rejected</span>
+                                {% elif inspection.status == 'RETURNED' %}
+                                    <span class="text-warning"><i class="bi bi-arrow-return-left me-1"></i>Returned for Correction</span>
+                                {% else %}
+                                    <span class="text-secondary"><i class="bi bi-hourglass-split me-1"></i>Pending Review</span>
+                                {% endif %}
+                            </h4>
+                            {% if inspection.supervisor %}
+                                <div class="small text-muted">
+                                    Signed off by <strong>{{ inspection.supervisor.get_full_name|default:inspection.supervisor.username }}</strong>
+                                    on {{ inspection.reviewed_at|date:"M d, Y H:i" }}
+                                </div>
+                            {% else %}
+                                <div class="small text-muted">Awaiting decision from an authorized supervisor.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if inspection.supervisor_comment %}
+                        <div class="mt-3 p-2 bg-light rounded border small">
+                            <strong>Supervisor Remarks:</strong>
+                            <div class="text-secondary">{{ inspection.supervisor_comment }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Measurement vs Tolerance Gauge -->
+        <div class="card mb-4">
+            <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-rulers text-primary me-2"></i>Dimensional Measurement Analysis</span>
+                <span class="badge bg-light text-dark border">{{ inspection.parameter_name }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center mb-4 text-center">
+                    <div class="col-4">
+                        <span class="text-muted small d-block">MIN TOLERANCE</span>
+                        <span class="h4 fw-bold text-secondary">{{ inspection.min_limit }} mm</span>
+                    </div>
+                    <div class="col-4 border-start border-end">
+                        <span class="text-muted small d-block">ACTUAL MEASURED</span>
+                        <span class="h3 fw-bold {% if inspection.calculated_result == 'PASS' %}text-success{% else %}text-danger{% endif %}">
+                            {{ inspection.measurement }} mm
+                        </span>
+                    </div>
+                    <div class="col-4">
+                        <span class="text-muted small d-block">MAX TOLERANCE</span>
+                        <span class="h4 fw-bold text-secondary">{{ inspection.max_limit }} mm</span>
+                    </div>
+                </div>
+
+                <!-- Visual Gauge Bar -->
+                <div class="tolerance-meter-container">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Tolerance Span: {{ inspection.min_limit }} - {{ inspection.max_limit }} mm</span>
+                        <span>
+                            Status: 
+                            <strong class="{% if inspection.calculated_result == 'PASS' %}text-success{% else %}text-danger{% endif %}">
+                                {{ inspection.calculated_result }}
+                            </strong>
+                        </span>
+                    </div>
+                    
+                    <div class="tolerance-bar position-relative">
+                        <!-- Target Zone (Acceptable Tolerance) -->
+                        <div class="tolerance-target-zone" style="left: {{ min_percent }}%; width: {{ target_width }}%;"></div>
+                        <!-- Pointer for Measurement -->
+                        <div class="tolerance-pointer" style="left: {{ meas_percent }}%;" title="Measured: {{ inspection.measurement }} mm"></div>
+                    </div>
+
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Below Min</span>
+                        <span class="text-success fw-semibold"><i class="bi bi-check2"></i> Target Acceptance Window</span>
+                        <span>Above Max</span>
+                    </div>
+                </div>
+
+                <!-- Statistical Process Control (SPC) Quality Metrics -->
+                <div class="row g-2 mt-3 pt-3 border-top text-center">
+                    <div class="col-sm-6 col-md-3">
+                        <div class="p-2 bg-light rounded border">
+                            <span class="text-muted small d-block">Nominal Center Target</span>
+                            <strong class="text-dark">{{ nominal_center }} mm</strong>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="p-2 bg-light rounded border">
+                            <span class="text-muted small d-block">Tolerance Bandwidth</span>
+                            <strong class="text-dark">{{ tolerance_span }} mm</strong>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="p-2 bg-light rounded border">
+                            <span class="text-muted small d-block">Offset from Nominal (&Delta;)</span>
+                            <strong class="{% if delta_from_nominal == 0 %}text-success{% elif calculated_result == 'FAIL' %}text-danger{% else %}text-primary{% endif %}">
+                                {% if delta_from_nominal > 0 %}+{% endif %}{{ delta_from_nominal }} mm
+                            </strong>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="p-2 bg-light rounded border">
+                            <span class="text-muted small d-block">Process Capability Grade</span>
+                            <span class="badge {{ spc_badge }}">{{ spc_grade }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Defect Photos Gallery -->
+        <div class="card mb-4">
+            <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-camera-fill text-primary me-2"></i>Attached Defect Photos
+                    <span class="badge bg-secondary ms-2">{{ photos.count }}</span>
+                </span>
+                {% if photos.count >= 2 %}
+                    <span class="badge bg-success"><i class="bi bi-check2 me-1"></i>Policy Met (≥2 Photos)</span>
+                {% elif photos.count == 0 and inspection.calculated_result == 'PASS' %}
+                    <span class="badge bg-light text-muted border">None Required (Passed)</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">{{ photos.count }} Photo(s) Attached</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if photos %}
+                    <div class="row g-3">
+                        {% for photo in photos %}
+                            <div class="col-sm-6 col-md-4">
+                                <div class="card h-100 shadow-sm border overflow-hidden">
+                                    <a href="{{ photo.image.url }}" target="_blank" title="Click to view full resolution">
+                                        <img src="{{ photo.image.url }}" class="w-100 defect-photo-thumbnail" alt="Defect Photo #{{ forloop.counter }}">
+                                    </a>
+                                    <div class="card-body p-2 bg-light">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-dark">Photo #{{ forloop.counter }}</span>
+                                            <small class="text-muted">{{ photo.uploaded_at|date:"H:i M d" }}</small>
+                                        </div>
+                                        <p class="card-text small text-secondary mt-1 mb-0">
+                                            {{ photo.caption|default:"Non-conformance photo capture" }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-images fs-2 d-block mb-1"></i>
+                        No defect photos attached to this inspection record.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section 3: Batch Association -->
+        <div class="card mb-5">
+            <div class="card-header card-header-custom">
+                <i class="bi bi-info-circle text-primary me-2"></i>Production Order Context
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-muted small">Batch Job Number</div>
+                        <div class="fw-bold">{{ inspection.job.job_number }}</div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="text-muted small">Product Name</div>
+                        <div class="fw-bold">{{ inspection.job.product_name }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-muted small">Dispatch State</div>
+                        <div>
+                            {% if inspection.job.dispatch_status == 'CLEARED' %}
+                                <span class="badge bg-success">Cleared for Dispatch</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pending Clearance</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

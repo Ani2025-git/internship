@@ -1,0 +1,390 @@
+{% extends 'base.html' %}
+
+{% block title %}Record Quality Inspection - QualiTrack{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+
+        <!-- Page Header -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <a href="{% url 'inspector_dashboard' %}" class="text-decoration-none text-muted small">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Inspector Dashboard
+                </a>
+                <h2 class="h3 fw-bold mt-1 mb-0">Record Quality Inspection</h2>
+                <p class="text-muted small mb-0">Enter physical measurements and tolerance specifications for quality verification.</p>
+            </div>
+            <div>
+                <span class="badge bg-primary px-3 py-2 fs-6">
+                    <i class="bi bi-shield-check me-1"></i> Quality Gate #1
+                </span>
+            </div>
+        </div>
+
+        <!-- Non-field Errors -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger shadow-sm border-danger mb-4" role="alert">
+                <div class="d-flex align-items-center mb-1">
+                    <i class="bi bi-exclamation-octagon-fill fs-4 me-2 text-danger"></i>
+                    <strong class="fs-6">Quality Policy Validation Alert</strong>
+                </div>
+                {% for err in form.non_field_errors %}
+                    <p class="mb-0 small ps-4">{{ err }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" id="inspectionForm" novalidate>
+            {% csrf_token %}
+
+            <!-- Section 1: Production Order -->
+            <div class="card mb-4">
+                <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-box-seam text-primary me-2"></i>Step 1: Select Production Order</span>
+                    <span class="badge bg-light text-muted border">Mandatory</span>
+                </div>
+                <div class="card-body">
+                    <label for="{{ form.job.id_for_label }}" class="form-label fw-semibold">Production Job / Batch</label>
+                    {{ form.job }}
+                    {% if form.job.errors %}
+                        <div class="text-danger small mt-1">{{ form.job.errors.0 }}</div>
+                    {% endif %}
+                    <div class="form-text">Choose the active production batch currently being measured.</div>
+                </div>
+            </div>
+
+            <!-- Section 2: Dimension & Limits -->
+            <div class="card mb-4">
+                <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-rulers text-primary me-2"></i>Step 2: Measurement & Tolerance Limits</span>
+                    <span class="badge bg-light text-muted border">Metric Precision (3 decimals)</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label for="{{ form.sample_unit_number.id_for_label }}" class="form-label fw-semibold text-secondary">
+                                <i class="bi bi-box me-1"></i> Sample Unit #
+                            </label>
+                            {{ form.sample_unit_number }}
+                            {% if form.sample_unit_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.sample_unit_number.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text small">e.g. Unit 1 from batch</div>
+                        </div>
+                        <div class="col-md-9">
+                            <label for="{{ form.parameter_name.id_for_label }}" class="form-label fw-semibold">Inspection Parameter Name</label>
+                            {{ form.parameter_name }}
+                            {% if form.parameter_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.parameter_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex gap-2 flex-wrap" id="presetContainer">
+                            <span class="text-muted small align-self-center">Suggested presets:</span>
+                            <!-- Dynamically updated by selected product -->
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.min_limit.id_for_label }}" class="form-label fw-semibold text-secondary">
+                                <i class="bi bi-dash-circle me-1"></i> Min Tolerance Limit (mm)
+                            </label>
+                            {{ form.min_limit }}
+                            {% if form.min_limit.errors %}
+                                <div class="text-danger small mt-1">{{ form.min_limit.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.max_limit.id_for_label }}" class="form-label fw-semibold text-secondary">
+                                <i class="bi bi-plus-circle me-1"></i> Max Tolerance Limit (mm)
+                            </label>
+                            {{ form.max_limit }}
+                            {% if form.max_limit.errors %}
+                                <div class="text-danger small mt-1">{{ form.max_limit.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <label for="{{ form.measurement.id_for_label }}" class="form-label fw-bold text-dark fs-5">
+                                <i class="bi bi-speedometer2 text-primary me-1"></i> Actual Measured Value (mm)
+                            </label>
+                            {{ form.measurement }}
+                            {% if form.measurement.errors %}
+                                <div class="text-danger small mt-1">{{ form.measurement.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Precision digital micrometer / caliper reading.</div>
+                        </div>
+                    </div>
+
+                    <!-- Live Real-Time Calculation Preview Card -->
+                    <div class="tolerance-meter-container mt-4" id="livePreviewContainer">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-uppercase text-secondary">
+                                <i class="bi bi-cpu me-1"></i> Real-time Auto PASS/FAIL Analysis
+                            </span>
+                            <span id="liveBadge" class="badge bg-secondary px-3 py-2 fs-6">
+                                Awaiting Inputs...
+                            </span>
+                        </div>
+
+                        <div class="progress" style="height: 12px; border-radius: 6px;">
+                            <div id="liveProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-secondary" role="progressbar" style="width: 50%;"></div>
+                        </div>
+
+                        <div id="liveFeedbackText" class="small text-muted mt-2">
+                            Enter Minimum, Maximum, and Actual Measurement to see automated pass/fail verification.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Defect Photos Upload -->
+            <div class="card mb-4" id="photoCard">
+                <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-bold"><i class="bi bi-camera-fill text-primary me-2"></i>Step 3: Defect Photos Attachment</span>
+                        <div class="text-muted small" id="photoHeaderHelp">Mandatory: Minimum 2 photos required if measurement is FAIL</div>
+                    </div>
+                    <span id="photoCounterBadge" class="badge bg-secondary">0 Photos Selected</span>
+                </div>
+                <div class="card-body">
+                    <!-- Fail Warning Banner (Dynamic) -->
+                    <div id="failPhotoAlert" class="alert alert-danger d-none shadow-sm mb-3">
+                        <div class="d-flex">
+                            <i class="bi bi-shield-exclamation fs-3 me-3 text-danger flex-shrink-0"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">MANDATORY DEFECT DOCUMENTATION</h6>
+                                <p class="small mb-0">
+                                    This measurement is out-of-tolerance (FAIL). Company quality protocol requires 
+                                    <strong>at least two (2) clear photos</strong> showing the physical defect or gauge discrepancy before this report can be submitted.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="photo-dropzone mb-3" id="dropZone" onclick="document.getElementById('defect_photos_input').click()">
+                        <i class="bi bi-cloud-arrow-up fs-1 text-primary d-block mb-2"></i>
+                        <h6 class="fw-bold mb-1">Click to Browse or Drag & Drop Defect Photos</h6>
+                        <p class="text-muted small mb-0">Select 2 or more image files (JPG, PNG, WebP). Max 10MB each.</p>
+                        {{ form.defect_photos }}
+                    </div>
+
+                    <!-- Photo Caption -->
+                    <div class="mb-3">
+                        <label for="{{ form.photo_caption.id_for_label }}" class="form-label small fw-semibold">Photo Caption / Defect Description</label>
+                        {{ form.photo_caption }}
+                        <div class="form-text">e.g., Burr on rim, surface pitting, out-of-round ovality.</div>
+                    </div>
+
+                    <!-- Live Image Previews Gallery -->
+                    <div id="imagePreviewRow" class="row g-2 mt-2"></div>
+                </div>
+            </div>
+
+            <!-- Submit Action -->
+            <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded-3 border shadow-sm mb-5">
+                <a href="{% url 'inspector_dashboard' %}" class="btn btn-outline-secondary fw-semibold px-4">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </a>
+                <button type="submit" id="submitBtn" class="btn btn-primary btn-lg fw-bold px-5 shadow">
+                    <i class="bi bi-check2-circle me-1"></i> Submit Inspection Report
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const minInput = document.getElementById('min_limit');
+    const maxInput = document.getElementById('max_limit');
+    const measInput = document.getElementById('measurement');
+    const paramInput = document.getElementById('parameter_name');
+    const liveBadge = document.getElementById('liveBadge');
+    const liveProgressBar = document.getElementById('liveProgressBar');
+    const liveFeedbackText = document.getElementById('liveFeedbackText');
+    const failPhotoAlert = document.getElementById('failPhotoAlert');
+    const fileInput = document.getElementById('defect_photos_input');
+    const photoCounterBadge = document.getElementById('photoCounterBadge');
+    const imagePreviewRow = document.getElementById('imagePreviewRow');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Dynamic Product-Aware Presets (Requirement 3)
+    const jobSelect = document.getElementById('job_select');
+    const presetContainer = document.getElementById('presetContainer');
+    let jobPresets = {};
+    try {
+        jobPresets = JSON.parse('{{ job_presets_json|escapejs }}');
+    } catch (e) {
+        console.error("Error parsing job presets", e);
+    }
+
+    function updatePresetButtons() {
+        if (!presetContainer) return;
+        const jobId = jobSelect ? jobSelect.value : '';
+        const presets = jobPresets[jobId] || [
+            {"name": "Critical Dimension (A)", "min": 49.500, "max": 50.500},
+            {"name": "Length / Height", "min": 99.000, "max": 101.000},
+            {"name": "Thickness / Width", "min": 9.500, "max": 10.500}
+        ];
+
+        presetContainer.innerHTML = '<span class="text-muted small align-self-center">Suggested presets for product:</span>';
+        presets.forEach(p => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-sm btn-outline-secondary py-0 param-preset';
+            btn.textContent = p.name;
+            btn.title = p.desc || p.name;
+            btn.addEventListener('click', function () {
+                paramInput.value = p.name;
+                if (p.min !== undefined && (!minInput.value || parseFloat(minInput.value) === 0)) {
+                    minInput.value = Number(p.min).toFixed(3);
+                }
+                if (p.max !== undefined && (!maxInput.value || parseFloat(maxInput.value) === 0)) {
+                    maxInput.value = Number(p.max).toFixed(3);
+                }
+                paramInput.focus();
+                calculateStatus();
+            });
+            presetContainer.appendChild(btn);
+        });
+    }
+
+    if (jobSelect) {
+        jobSelect.addEventListener('change', updatePresetButtons);
+        updatePresetButtons();
+    }
+
+    function calculateStatus() {
+        const minVal = parseFloat(minInput.value);
+        const maxVal = parseFloat(maxInput.value);
+        const measVal = parseFloat(measInput.value);
+
+        if (isNaN(minVal) || isNaN(maxVal) || isNaN(measVal)) {
+            liveBadge.className = 'badge bg-secondary px-3 py-2 fs-6';
+            liveBadge.innerHTML = '<i class="bi bi-hourglass me-1"></i> Awaiting Complete Values...';
+            liveProgressBar.className = 'progress-bar bg-secondary';
+            liveProgressBar.style.width = '50%';
+            liveFeedbackText.innerHTML = 'Enter Minimum, Maximum, and Actual Measurement to calculate PASS/FAIL.';
+            failPhotoAlert.classList.add('d-none');
+            return null;
+        }
+
+        if (minVal > maxVal) {
+            liveBadge.className = 'badge bg-danger px-3 py-2 fs-6';
+            liveBadge.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i> Invalid Limits';
+            liveProgressBar.className = 'progress-bar bg-danger';
+            liveProgressBar.style.width = '100%';
+            liveFeedbackText.innerHTML = '<span class="text-danger fw-bold">Error:</span> Minimum limit cannot exceed Maximum limit.';
+            failPhotoAlert.classList.add('d-none');
+            return null;
+        }
+
+        const isPass = (measVal >= minVal && measVal <= maxVal);
+
+        if (isPass) {
+            liveBadge.className = 'badge bg-success px-3 py-2 fs-6';
+            liveBadge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> AUTO RESULT: PASS (IN TOLERANCE)';
+            liveProgressBar.className = 'progress-bar bg-success';
+            
+            // Visual position
+            const span = maxVal - minVal;
+            const pct = span > 0 ? ((measVal - minVal) / span) * 100 : 50;
+            liveProgressBar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+
+            liveFeedbackText.innerHTML = `<span class="text-success fw-bold"><i class="bi bi-check-lg me-1"></i>Compliant:</span> Measured ${measVal} is within [${minVal} - ${maxVal}]. Defect photos are optional.`;
+            failPhotoAlert.classList.add('d-none');
+            submitBtn.className = 'btn btn-success btn-lg fw-bold px-5 shadow';
+            submitBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Submit Compliant Inspection (PASS)';
+            return 'PASS';
+        } else {
+            liveBadge.className = 'badge bg-danger px-3 py-2 fs-6 pulse-danger';
+            liveBadge.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> AUTO RESULT: FAIL (OUT OF TOLERANCE)';
+            liveProgressBar.className = 'progress-bar bg-danger progress-bar-striped progress-bar-animated';
+            liveProgressBar.style.width = '100%';
+
+            const diff = measVal < minVal ? (minVal - measVal).toFixed(3) + ' under min' : (measVal - maxVal).toFixed(3) + ' over max';
+            liveFeedbackText.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-exclamation-octagon-fill me-1"></i>Out of Tolerance (${diff}):</span> Strict quality rule: Upload at least 2 defect photos below to proceed.`;
+            failPhotoAlert.classList.remove('d-none');
+            submitBtn.className = 'btn btn-danger btn-lg fw-bold px-5 shadow';
+            submitBtn.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i> Submit Non-Conformance Report (FAIL)';
+            return 'FAIL';
+        }
+    }
+
+    [minInput, maxInput, measInput].forEach(inp => {
+        inp.addEventListener('input', calculateStatus);
+    });
+
+    // Run once on load
+    calculateStatus();
+
+    // Photo input preview & counter
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            imagePreviewRow.innerHTML = '';
+            const files = Array.from(this.files);
+            const count = files.length;
+
+            photoCounterBadge.textContent = `${count} Photo${count === 1 ? '' : 's'} Selected`;
+            if (count >= 2) {
+                photoCounterBadge.className = 'badge bg-success';
+            } else if (count === 1) {
+                photoCounterBadge.className = 'badge bg-warning text-dark';
+            } else {
+                photoCounterBadge.className = 'badge bg-secondary';
+            }
+
+            files.forEach((file, index) => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const col = document.createElement('div');
+                        col.className = 'col-sm-4 col-md-3';
+                        col.innerHTML = `
+                            <div class="card h-100 p-1 position-relative shadow-sm">
+                                <img src="${e.target.result}" class="defect-photo-thumbnail" alt="Preview ${index + 1}">
+                                <div class="p-1 text-center small text-truncate text-muted">${file.name}</div>
+                                <span class="badge bg-dark position-absolute top-0 start-0 m-2">#${index + 1}</span>
+                            </div>
+                        `;
+                        imagePreviewRow.appendChild(col);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    }
+
+    // Drag and Drop styling
+    const dropZone = document.getElementById('dropZone');
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('dragover');
+        });
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('dragover');
+        });
+    });
+    dropZone.addEventListener('drop', e => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        fileInput.dispatchEvent(new Event('change'));
+    });
+});
+</script>
+{% endblock %}

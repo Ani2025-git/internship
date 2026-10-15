@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+
+{% block title %}Production Order {{ job.job_number }} - QualiTrack{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-11">
+
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+            <div>
+                <a href="{% url 'dashboard_redirect' %}" class="text-decoration-none text-muted small">
+                    <i class="bi bi-arrow-left me-1"></i> Return to Dashboard
+                </a>
+                <h2 class="h3 fw-bold mt-1 mb-0">
+                    Production Order: <span class="text-primary">{{ job.job_number }}</span>
+                </h2>
+                <div class="text-muted small">
+                    Product: <strong>{{ job.product_name }}</strong> &bull; Target Quantity: <strong>{{ job.target_quantity }} units</strong> &bull; Created: {{ job.created_at|date:"F d, Y" }}
+                </div>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                {% if user.profile.is_inspector or user.profile.is_admin or user.is_superuser %}
+                    {% if job.dispatch_status != 'CLEARED' %}
+                        <a href="{% url 'inspection_create' %}?job={{ job.id }}" class="btn btn-primary btn-sm fw-semibold shadow-sm">
+                            <i class="bi bi-plus-circle me-1"></i> Record Inspection
+                        </a>
+                    {% endif %}
+                {% endif %}
+                {% if user.profile.is_supervisor or user.profile.is_admin or user.is_superuser %}
+                    {% if job.dispatch_status != 'CLEARED' %}
+                        <a href="{% url 'place_hold' pk=job.id %}" class="btn btn-outline-danger btn-sm fw-semibold">
+                            <i class="bi bi-slash-circle me-1"></i> Place Process Hold
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Clearance Banner -->
+        {% if job.dispatch_status == 'CLEARED' %}
+            <div class="card bg-success text-white border-0 shadow-sm p-4 mb-4">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div>
+                        <div class="badge bg-light text-success fw-bold px-3 py-2 mb-2">
+                            <i class="bi bi-patch-check-fill me-1"></i> OFFICIAL DISPATCH AUTHORIZATION
+                        </div>
+                        <h3 class="fw-bold mb-1">CLEARED FOR FACTORY DISPATCH</h3>
+                        <p class="mb-0 small opacity-90">
+                            This batch has passed all required dimensional quality inspections and supervisory audits.
+                            Cleared by <strong>{{ job.cleared_by.get_full_name|default:job.cleared_by.username }}</strong>
+                            on <strong>{{ job.cleared_at|date:"F d, Y @ H:i T" }}</strong>.
+                        </p>
+                    </div>
+                    <div class="d-flex flex-column align-items-end gap-2">
+                        <a href="{% url 'job_certificate' pk=job.id %}" class="btn btn-light text-success fw-bold shadow-sm px-4">
+                            <i class="bi bi-award-fill me-1"></i> Official Certificate (COA)
+                        </a>
+                        <small class="text-white-50"><i class="bi bi-printer me-1"></i> Printable Gate Pass</small>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Dispatch Gate Validation Checklist (Feature 4 Core) -->
+            <div class="card mb-4 border-{% if can_dispatch %}success{% else %}warning{% endif %}">
+                <div class="card-header bg-{% if can_dispatch %}success bg-opacity-10{% else %}warning bg-opacity-10{% endif %} py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-shield-check text-{% if can_dispatch %}success{% else %}warning{% endif %} me-2"></i>
+                            Dispatch Clearance Gate: Real-Time Checklist
+                        </h5>
+                        <small class="text-muted">All 4 factory business rules must be verified before dispatch is permitted</small>
+                    </div>
+                    <div>
+                        {% if can_dispatch %}
+                            <span class="badge bg-success fs-6 py-2 px-3">
+                                <i class="bi bi-check-circle me-1"></i> ALL RULES PASSED &bull; READY
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger fs-6 py-2 px-3">
+                                <i class="bi bi-shield-slash me-1"></i> DISPATCH BLOCKED ({{ reasons|length }})
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2 mb-3">
+                        <!-- Rule 1: Inspection recorded -->
+                        <div class="col-md-6">
+                            <div class="checklist-item {% if rule_has_inspections %}passed{% else %}failed{% endif %}">
+                                <i class="bi {% if rule_has_inspections %}bi-check-circle-fill text-success{% else %}bi-x-circle-fill text-danger{% endif %} fs-4 me-3"></i>
+                                <div>
+                                    <strong class="d-block">Rule 1: Quality Inspection Recorded</strong>
+                                    <small>{% if rule_has_inspections %}{{ inspections.count }} inspection(s) logged.{% else %}No inspections recorded for this job batch.{% endif %}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rule 2: All inspections approved -->
+                        <div class="col-md-6">
+                            <div class="checklist-item {% if rule_all_approved %}passed{% else %}failed{% endif %}">
+                                <i class="bi {% if rule_all_approved %}bi-check-circle-fill text-success{% else %}bi-x-circle-fill text-danger{% endif %} fs-4 me-3"></i>
+                                <div>
+                                    <strong class="d-block">Rule 2: Supervisor Approval Complete</strong>
+                                    <small>{% if rule_all_approved %}All recorded inspections are approved.{% else %}Not all inspections have supervisor approval.{% endif %}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rule 3: No pending/rejected/returned -->
+                        <div class="col-md-6">
+                            <div class="checklist-item {% if rule_no_pending_or_rejected %}passed{% else %}failed{% endif %}">
+                                <i class="bi {% if rule_no_pending_or_rejected %}bi-check-circle-fill text-success{% else %}bi-x-circle-fill text-danger{% endif %} fs-4 me-3"></i>
+                                <div>
+                                    <strong class="d-block">Rule 3: No Pending, Rejected or Returned Items</strong>
+                                    <small>{% if rule_no_pending_or_rejected %}Zero active defects or pending items.{% else %}Some inspections require review or corrective action.{% endif %}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rule 4: No active process holds -->
+                        <div class="col-md-6">
+                            <div class="checklist-item {% if rule_no_active_holds %}passed{% else %}failed{% endif %}">
+                                <i class="bi {% if rule_no_active_holds %}bi-check-circle-fill text-success{% else %}bi-x-circle-fill text-danger{% endif %} fs-4 me-3"></i>
+                                <div>
+                                    <strong class="d-block">Rule 4: Process Holds Clear</strong>
+                                    <small>{% if rule_no_active_holds %}No active process holds blocking batch.{% else %}Active process hold is present on this order.{% endif %}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dispatch Action Button Area -->
+                    <div class="p-3 bg-light rounded border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            {% if can_dispatch %}
+                                <div class="text-success fw-bold">
+                                    <i class="bi bi-check2-all me-1"></i> Clearance Criteria Satisfied: Ready for official authorization.
+                                </div>
+                            {% else %}
+                                <div class="text-danger fw-semibold">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Resolve the {{ reasons|length }} blocking rule(s) above before dispatch can be cleared.
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {% if user.profile.is_supervisor or user.profile.is_admin or user.is_superuser %}
+                            {% if can_dispatch %}
+                                <form method="POST" action="{% url 'clear_dispatch' pk=job.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-lg fw-bold px-4 shadow">
+                                        <i class="bi bi-box-seam me-1"></i> Authorize & Clear Dispatch
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button class="btn btn-secondary btn-lg" disabled title="Resolve blocking rules above first">
+                                    <i class="bi bi-lock-fill me-1"></i> Dispatch Blocked
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Section 1: Quality Inspections for this Job -->
+        <div class="card mb-4">
+            <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-clipboard2-check text-primary me-2"></i>Recorded Quality Inspections
+                    <span class="badge bg-secondary ms-2">{{ inspections.count }}</span>
+                </span>
+                {% if user.profile.is_inspector or user.profile.is_admin or user.is_superuser %}
+                    {% if job.dispatch_status != 'CLEARED' %}
+                        <a href="{% url 'inspection_create' %}?job={{ job.id }}" class="btn btn-sm btn-outline-primary fw-semibold">
+                            <i class="bi bi-plus-lg me-1"></i> Add Inspection
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">ID</th>
+                                <th>Parameter</th>
+                                <th>Measured</th>
+                                <th>Tolerances</th>
+                                <th>Auto Result</th>
+                                <th>Supervisor Decision</th>
+                                <th>Defect Photos</th>
+                                <th>Inspector</th>
+                                <th class="text-end pe-3">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for insp in inspections %}
+                                <tr>
+                                    <td class="ps-3 text-muted">#{{ insp.id }}</td>
+                                    <td class="fw-bold">{{ insp.parameter_name }}</td>
+                                    <td class="fw-bold">{{ insp.measurement }} mm</td>
+                                    <td class="text-muted small">[{{ insp.min_limit }} - {{ insp.max_limit }}]</td>
+                                    <td>
+                                        {% if insp.calculated_result == 'PASS' %}
+                                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>PASS</span>
+                                        {% else %}
+                                            <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>FAIL</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if insp.status == 'APPROVED' %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% elif insp.status == 'REJECTED' %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% elif insp.status == 'RETURNED' %}
+                                            <span class="badge bg-warning text-dark">Returned</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">
+                                            <i class="bi bi-images me-1"></i>{{ insp.defect_photos.count }}
+                                        </span>
+                                    </td>
+                                    <td class="small text-muted">{{ insp.inspector.username }}</td>
+                                    <td class="text-end pe-3">
+                                        <a href="{% url 'inspection_detail' pk=insp.id %}" class="btn btn-outline-secondary btn-sm">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        {% if user.profile.is_supervisor or user.profile.is_admin or user.is_superuser %}
+                                            {% if insp.status == 'PENDING' %}
+                                                <a href="{% url 'inspection_review' pk=insp.id %}" class="btn btn-warning btn-sm fw-semibold ms-1">
+                                                    Review
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center py-4 text-muted">
+                                        <i class="bi bi-clipboard-x fs-3 d-block mb-1"></i>
+                                        No inspections recorded yet for this job batch.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Process Holds on this Job -->
+        <div class="card mb-5">
+            <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-slash-circle text-danger me-2"></i>Operational & Quality Process Holds
+                    <span class="badge bg-secondary ms-2">{{ holds.count }}</span>
+                </span>
+                {% if user.profile.is_supervisor or user.profile.is_admin or user.is_superuser %}
+                    {% if job.dispatch_status != 'CLEARED' %}
+                        <a href="{% url 'place_hold' pk=job.id %}" class="btn btn-sm btn-outline-danger fw-semibold">
+                            <i class="bi bi-plus-lg me-1"></i> Place Hold
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">ID</th>
+                                <th>Status</th>
+                                <th>Reason</th>
+                                <th>Placed By</th>
+                                <th>Placed At</th>
+                                <th>Resolution Notes</th>
+                                <th>Released By</th>
+                                <th class="text-end pe-3">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hold in holds %}
+                                <tr>
+                                    <td class="ps-3 text-muted">#{{ hold.id }}</td>
+                                    <td>
+                                        {% if hold.is_active %}
+                                            <span class="badge bg-danger pulse-danger"><i class="bi bi-slash-circle me-1"></i>ACTIVE HOLD</span>
+                                        {% else %}
+                                            <span class="badge bg-success"><i class="bi bi-check2 me-1"></i>RELEASED</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-semibold">{{ hold.reason }}</td>
+                                    <td class="small text-muted">{{ hold.placed_by.username }}</td>
+                                    <td class="small text-muted">{{ hold.placed_at|date:"M d, H:i" }}</td>
+                                    <td class="small text-secondary">{{ hold.release_notes|default:"-" }}</td>
+                                    <td class="small text-muted">{{ hold.released_by.username|default:"-" }}</td>
+                                    <td class="text-end pe-3">
+                                        {% if hold.is_active and user.profile.is_supervisor or hold.is_active and user.profile.is_admin or hold.is_active and user.is_superuser %}
+                                            <a href="{% url 'release_hold' pk=hold.id %}" class="btn btn-sm btn-outline-success fw-semibold">
+                                                <i class="bi bi-unlock me-1"></i> Release Hold
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted small">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">
+                                        <i class="bi bi-check2-circle text-success fs-3 d-block mb-1"></i>
+                                        No process holds have been placed on this order.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

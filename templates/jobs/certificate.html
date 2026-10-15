@@ -1,0 +1,876 @@
+{% extends 'base.html' %}
+
+{% block title %}Certificate of Quality & Dispatch Release &bull; {{ job.job_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================================
+       Print Optimization (Strict Single A4 Sheet Standard)
+       Eliminates page breaks, orphan header bars, and split tables
+       ========================================================================== */
+    @page {
+        size: A4 portrait;
+        margin: 5mm 6mm !important;
+    }
+
+    @media print {
+        *, *::before, *::after {
+            box-sizing: border-box !important;
+        }
+
+        html, body {
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-size: 7.5pt !important;
+            line-height: 1.15 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* Suppress all web UI chrome, navigation, status bar, and buttons */
+        .navbar, .navbar-custom, .footer, .btn, .no-print, header, nav, 
+        .alert, .alert-dismissible, .toast-container, .bg-dark, .modal, .offcanvas {
+            display: none !important;
+        }
+
+        .main-container,
+        .main-container > .container,
+        .row.justify-content-center,
+        .col-lg-11, .col-xl-10 {
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+
+        /* Guarantee Certificate Sheet fits on 1 Single A4 Page */
+        .certificate-sheet {
+            box-shadow: none !important;
+            border: 2px solid #0f172a !important;
+            outline: 1.5px solid #b45309 !important;
+            outline-offset: -3px !important;
+            border-radius: 4px !important;
+            padding: 4mm 6mm !important;
+            margin: 0 auto !important;
+            width: 100% !important;
+            max-height: 285mm !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            page-break-before: avoid !important;
+            page-break-after: avoid !important;
+            background: #ffffff !important;
+            background-image: none !important;
+        }
+
+        .cert-corner {
+            display: none !important;
+        }
+
+        .watermark-overlay {
+            opacity: 0.25 !important;
+        }
+        .watermark-text {
+            font-size: 2.6rem !important;
+        }
+
+        /* Header block */
+        .cert-header-block {
+            padding-bottom: 2px !important;
+            margin-bottom: 3px !important;
+            border-bottom-width: 1.5px !important;
+        }
+        .cert-crest-box {
+            width: 40px !important;
+            height: 40px !important;
+            padding: 4px !important;
+            border-radius: 4px !important;
+        }
+        .cert-crest-box i {
+            font-size: 1.25rem !important;
+        }
+        .cert-company-name {
+            font-size: 0.98rem !important;
+            letter-spacing: 0.5px !important;
+            margin-bottom: 0 !important;
+            line-height: 1.1 !important;
+        }
+        .cert-subtitle {
+            font-size: 0.65rem !important;
+            line-height: 1.1 !important;
+        }
+        .cert-badge-row .badge {
+            font-size: 0.56rem !important;
+            padding: 1px 4px !important;
+        }
+        .security-badge {
+            font-size: 0.64rem !important;
+            padding: 1px 5px !important;
+        }
+
+        .cert-title-main {
+            font-size: 0.92rem !important;
+            margin-top: 2px !important;
+            margin-bottom: 1px !important;
+            line-height: 1.1 !important;
+        }
+        .cert-title-sub {
+            font-size: 0.58rem !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Declaration Box */
+        .declaration-wrapper {
+            margin-bottom: 3px !important;
+        }
+        .declaration-box {
+            padding: 2.5px 5px !important;
+        }
+        .declaration-box p {
+            font-size: 6.6pt !important;
+            line-height: 1.2 !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Batch Scope Card */
+        .batch-scope-card {
+            padding: 2.5px 5px !important;
+            margin-bottom: 3px !important;
+            --bs-gutter-y: 0.15rem !important;
+            --bs-gutter-x: 0.35rem !important;
+        }
+        .batch-scope-card strong {
+            font-size: 0.78rem !important;
+            line-height: 1 !important;
+        }
+        .batch-scope-card .text-uppercase {
+            font-size: 0.54rem !important;
+            line-height: 1 !important;
+        }
+        .batch-scope-card .small {
+            font-size: 0.54rem !important;
+        }
+
+        /* Matrix Table */
+        .matrix-wrapper {
+            margin-bottom: 3px !important;
+        }
+        .matrix-header {
+            margin-bottom: 1px !important;
+        }
+        .matrix-header h5 {
+            font-size: 0.72rem !important;
+            margin-bottom: 0 !important;
+        }
+        .matrix-header .badge {
+            font-size: 0.54rem !important;
+            padding: 1px 3px !important;
+        }
+        .table-responsive {
+            overflow: visible !important;
+        }
+        table.matrix-table {
+            font-size: 6.3pt !important;
+            margin-bottom: 0 !important;
+            width: 100% !important;
+        }
+        table.matrix-table th,
+        table.matrix-table td {
+            padding: 1.5px 3px !important;
+            line-height: 1.1 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        table.matrix-table .badge {
+            font-size: 0.54rem !important;
+            padding: 1px 3px !important;
+        }
+
+        /* Signatures and Official Seal */
+        .row-print-sign {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            justify-content: space-between !important;
+            align-items: stretch !important;
+            margin-top: 2px !important;
+            padding-top: 2px !important;
+            gap: 4px !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        .col-print-4 {
+            width: 32% !important;
+            max-width: 32% !important;
+            flex: 0 0 32% !important;
+            padding: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        .sign-box {
+            padding: 2.5px 4px !important;
+            border-radius: 4px !important;
+        }
+        .sign-box .text-uppercase {
+            font-size: 0.5rem !important;
+            margin-bottom: 1px !important;
+        }
+        .sign-font {
+            font-size: 0.88rem !important;
+            line-height: 1 !important;
+        }
+        .sign-line {
+            width: 55% !important;
+            margin: 2px auto 1.5px auto !important;
+        }
+        .sign-box .fs-6 {
+            font-size: 0.68rem !important;
+        }
+        .sign-box .small {
+            font-size: 0.5rem !important;
+            line-height: 1.1 !important;
+        }
+
+        /* Official Seal Badge */
+        .official-seal {
+            width: 74px !important;
+            height: 74px !important;
+            padding: 2px !important;
+            margin: 0 auto !important;
+            transform: none !important;
+        }
+        .seal-icon-svg {
+            width: 14px !important;
+            height: 14px !important;
+            margin-bottom: 1px !important;
+        }
+        .seal-header-text {
+            font-size: 0.46rem !important;
+            line-height: 1 !important;
+        }
+        .seal-status-text {
+            font-size: 0.5rem !important;
+            margin-top: 1px !important;
+        }
+        .official-seal small {
+            font-size: 0.4rem !important;
+        }
+
+        /* Cryptographic Footer */
+        .digest-container {
+            margin-top: 2px !important;
+            padding-top: 2px !important;
+        }
+        .digest-container .small {
+            font-size: 0.52rem !important;
+            margin-bottom: 1px !important;
+        }
+        .digest-box {
+            padding: 2px 4px !important;
+            font-size: 5.4pt !important;
+            line-height: 1.1 !important;
+        }
+    }
+
+    /* ==========================================================================
+       Luxury Executive Certificate Styling
+       ========================================================================== */
+    .certificate-sheet {
+        background: #ffffff;
+        border: 12px double #1e3a8a;
+        outline: 2px solid #b45309;
+        outline-offset: -6px;
+        border-radius: 8px;
+        position: relative;
+        padding: 2.75rem 3rem;
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.12), 0 5px 15px rgba(0,0,0,0.06);
+        background-image: 
+            radial-gradient(circle at 50% 50%, rgba(241, 245, 249, 0.5) 0%, rgba(255, 255, 255, 1) 100%);
+    }
+
+    /* Ornate Corner Embellishments */
+    .cert-corner {
+        position: absolute;
+        width: 32px;
+        height: 32px;
+        border-color: #b45309;
+        border-style: solid;
+        pointer-events: none;
+    }
+    .cert-corner-tl { top: 6px; left: 6px; border-width: 3px 0 0 3px; }
+    .cert-corner-tr { top: 6px; right: 6px; border-width: 3px 3px 0 0; }
+    .cert-corner-bl { bottom: 6px; left: 6px; border-width: 0 0 3px 3px; }
+    .cert-corner-br { bottom: 6px; right: 6px; border-width: 0 3px 3px 0; }
+
+    /* Watermark */
+    .watermark-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 0;
+    }
+    .watermark-text {
+        font-size: 4.2rem;
+        font-weight: 900;
+        color: rgba(16, 185, 129, 0.04);
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        transform: rotate(-22deg);
+        user-select: none;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .watermark-provisional {
+        color: rgba(217, 119, 6, 0.05);
+    }
+
+    /* Executive Typography */
+    .cert-company-name {
+        font-family: 'Times New Roman', Times, serif, Georgia;
+        letter-spacing: 2px;
+        font-weight: 800;
+        color: #0f172a;
+    }
+    .cert-title-main {
+        font-family: 'Times New Roman', Times, serif, Georgia;
+        letter-spacing: 1.5px;
+        font-weight: 700;
+        color: #1e3a8a;
+    }
+    .cert-subtitle {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #64748b;
+    }
+
+    /* Official Foil Embossed Stamp */
+    .official-seal {
+        width: 145px;
+        height: 145px;
+        border-radius: 50%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 10px;
+        position: relative;
+        box-sizing: border-box;
+        transition: transform 0.2s ease;
+    }
+    .official-seal-authorized {
+        background: radial-gradient(circle, #f0fdf4 0%, #dcfce7 65%, #bbf7d0 100%);
+        border: 4px double #059669;
+        outline: 2px dashed #047857;
+        outline-offset: -6px;
+        color: #065f46;
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.2);
+    }
+    .official-seal-provisional {
+        background: radial-gradient(circle, #fffbeb 0%, #fef3c7 65%, #fde68a 100%);
+        border: 4px double #d97706;
+        outline: 2px dashed #b45309;
+        outline-offset: -6px;
+        color: #92400e;
+        box-shadow: 0 4px 15px rgba(217, 119, 6, 0.2);
+    }
+    .seal-icon-svg {
+        width: 32px;
+        height: 32px;
+        margin-bottom: 3px;
+    }
+    .seal-header-text {
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        line-height: 1.1;
+    }
+    .seal-status-text {
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+
+    /* Sign-off Signature box */
+    .sign-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        height: 100%;
+    }
+    .sign-line {
+        border-bottom: 1.5px solid #0f172a;
+        width: 70%;
+        margin: 1.25rem auto 0.5rem auto;
+    }
+    .sign-font {
+        font-family: 'Brush Script MT', 'Segoe Script', cursive, sans-serif;
+        font-size: 1.5rem;
+        color: #1e3a8a;
+        line-height: 1;
+    }
+
+    /* Monospace security boxes */
+    .security-badge {
+        font-family: var(--bs-font-monospace);
+        font-size: 0.75rem;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        padding: 4px 10px;
+        border-radius: 4px;
+        color: #0f172a;
+    }
+    .digest-box {
+        background: #f8fafc;
+        border: 1px dashed #94a3b8;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-family: var(--bs-font-monospace);
+        font-size: 0.72rem;
+        color: #334155;
+        word-break: break-all;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-11 col-xl-10">
+
+        <!-- Top Navigation & Action Controls (Hidden when printed) -->
+        <div class="d-flex align-items-center justify-content-between mb-4 no-print flex-wrap gap-2">
+            <div>
+                <a href="{% url 'job_detail' pk=job.id %}" class="btn btn-outline-secondary btn-sm mb-1">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Batch {{ job.job_number }}
+                </a>
+                <h2 class="h3 fw-bold mt-1 mb-0 text-dark">Certificate of Quality & Dispatch Release</h2>
+                <p class="text-muted small mb-0">Official Dimensional Verification & Factory Release Gate Pass</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'job_certificate' pk=job.id %}?format=pdf&download=true" class="btn btn-primary fw-semibold shadow-sm">
+                    <i class="bi bi-download me-1"></i> Download PDF
+                </a>
+                <a href="{% url 'job_certificate' pk=job.id %}?format=pdf" class="btn btn-outline-primary fw-semibold shadow-sm" target="_blank">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Preview PDF
+                </a>
+                <button type="button" class="btn btn-dark fw-semibold shadow-sm" onclick="printCertificate()">
+                    <i class="bi bi-printer-fill me-1"></i> Print Certificate
+                </button>
+            </div>
+        </div>
+
+        <!-- Official Executive Certificate Sheet -->
+        <div class="certificate-sheet mb-5 position-relative">
+            
+            <!-- Ornate Filigree Corner Accents -->
+            <div class="cert-corner cert-corner-tl"></div>
+            <div class="cert-corner cert-corner-tr"></div>
+            <div class="cert-corner cert-corner-bl"></div>
+            <div class="cert-corner cert-corner-br"></div>
+
+            <!-- Watermark Overlay -->
+            <div class="watermark-overlay">
+                {% if is_dispatch_authorized %}
+                    <div class="watermark-text">CLEARED FOR DISPATCH</div>
+                {% else %}
+                    <div class="watermark-text watermark-provisional">PROVISIONAL &bull; NOT FOR DISPATCH</div>
+                {% endif %}
+            </div>
+
+            <!-- Certificate Header with Industrial Coat of Arms / Crest -->
+            <div class="border-bottom border-2 pb-4 mb-4 position-relative cert-header-block" style="z-index: 1;">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    
+                    <!-- Left: Brand Crest & Manufacturing Authority -->
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary text-white rounded-3 p-3 shadow-sm d-flex align-items-center justify-content-center cert-crest-box" style="width: 68px; height: 68px; background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); border: 2px solid #b45309;">
+                            <i class="bi bi-shield-check text-warning fs-1"></i>
+                        </div>
+                        <div>
+                            <h3 class="cert-company-name mb-0">QUALITRACK PRECISION TECHNOLOGIES</h3>
+                            <div class="cert-subtitle fw-semibold">Quality Assurance & Metrological Standards Division</div>
+                            <div class="small text-muted mt-1 cert-badge-row">
+                                <span class="badge bg-dark text-light me-1">Plant Unit 4</span>
+                                <span class="badge bg-secondary text-light me-1">Advanced Metrology Lab</span>
+                                {% if iso_verified %}
+                                    <span class="badge bg-primary text-white">ISO 9001:2015 &bull; Reg #{{ iso_registration }}</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark border">QualiTrack Precision Metrology Standard (QMS-QP-01)</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Certificate Reference Block -->
+                    <div class="text-md-end">
+                        <div class="security-badge mb-1 fw-bold text-primary border-primary">
+                            <i class="bi bi-file-earmark-check-fill me-1"></i>{{ cert_number }}
+                        </div>
+                        <div class="small text-muted d-block">
+                            Date of Issue: <strong>{{ generated_at_utc }}</strong>
+                        </div>
+                        <div class="mt-1">
+                            {% if is_dispatch_authorized %}
+                                <span class="badge bg-success px-3 py-1 fs-7 shadow-sm">
+                                    <i class="bi bi-patch-check-fill me-1"></i>DISPATCH AUTHORIZED
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark px-3 py-1 fs-7 shadow-sm">
+                                    <i class="bi bi-shield-exclamation me-1"></i>PROVISIONAL - WITHHELD
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Document Main Title Header -->
+                <div class="text-center mt-4 pt-2">
+                    <h2 class="cert-title-main h3 mb-1">CERTIFICATE OF QUALITY & DISPATCH RELEASE</h2>
+                    <p class="text-muted small text-uppercase letter-spacing mb-0 cert-title-sub">
+                        Dimensional Metrology Verification & Conformity Assessment
+                    </p>
+                </div>
+            </div>
+
+            <!-- Policy Warning Banner (Only displayed if clearance is not authorized) -->
+            {% if not is_dispatch_authorized and block_reasons %}
+                <div class="alert alert-warning border-warning shadow-sm mb-4 position-relative" style="z-index: 1;" role="alert">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 text-warning me-3 flex-shrink-0"></i>
+                        <div>
+                            <strong class="d-block mb-1 text-dark">DISPATCH RELEASE RESTRICTION ALERT</strong>
+                            <p class="small mb-2 text-muted">
+                                This certificate is currently a <strong>Provisional Quality Record</strong>. Official dispatch release is strictly withheld on the backend until all {{ block_reasons|length }} operational rule(s) are satisfied:
+                            </p>
+                            <ul class="mb-0 small ps-3 text-dark">
+                                {% for reason in block_reasons %}
+                                    <li>{{ reason }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Formal Statement of Metrological Conformance -->
+            <div class="mb-4 position-relative declaration-wrapper" style="z-index: 1;">
+                <div class="p-3 bg-light bg-opacity-75 rounded border border-light-subtle declaration-box">
+                    <p class="mb-0 text-secondary" style="font-size: 0.92rem; line-height: 1.6;">
+                        <strong>Declaration of Quality:</strong> This is to certify that production batch 
+                        <strong class="text-primary font-monospace">{{ job.job_number }}</strong> of 
+                        <strong class="text-dark">{{ job.product_name }}</strong> has undergone precision dimensional 
+                        inspection and quality compliance audit. All dimensional parameters were measured against calibrated digital tooling 
+                        in conformance with engineering tolerance limits (LSL / USL) and standard operating procedures.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Batch Scope & Statistical Sampling Metadata Card -->
+            <div class="row g-3 p-3 bg-white rounded-3 border mb-4 position-relative shadow-sm batch-scope-card" style="z-index: 1;">
+                <div class="col-sm-6 col-md-3">
+                    <span class="text-muted small d-block text-uppercase fw-semibold">Production Job #</span>
+                    <strong class="fs-5 text-primary font-monospace">{{ job.job_number }}</strong>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <span class="text-muted small d-block text-uppercase fw-semibold">Product Description</span>
+                    <strong class="text-dark fs-6">{{ job.product_name }}</strong>
+                </div>
+                <div class="col-sm-4 col-md-2">
+                    <span class="text-muted small d-block text-uppercase fw-semibold">Batch Quantity</span>
+                    <strong class="text-dark">{{ job.target_quantity }} Units</strong>
+                </div>
+                <div class="col-sm-4 col-md-3">
+                    <span class="text-muted small d-block text-uppercase fw-semibold">First-Pass Yield (FPY)</span>
+                    <strong class="{% if quality_yield >= 95 %}text-success{% elif quality_yield >= 75 %}text-warning{% else %}text-danger{% endif %} fs-5">
+                        {{ quality_yield }}% Pass Rate
+                    </strong>
+                    <div class="small text-muted">({{ passed_checks }} of {{ total_checks }} conforming)</div>
+                </div>
+
+                <!-- Scope & Coverage Clarification -->
+                <div class="col-12 border-top pt-2 mt-2">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 text-muted small">
+                        <div>
+                            <i class="bi bi-info-circle text-primary me-1"></i>
+                            <strong>Sampling Scope:</strong> Dimensional metrology performed on <strong>{{ inspected_units_count }} sample unit(s)</strong> across <strong>{{ inspected_dimensions_count }} critical parameter(s)</strong> from a total batch of <strong>{{ job.target_quantity }} units produced</strong> under QualiTrack Standard Protocols.
+                        </div>
+                        <div>
+                            Sampling Plan: <strong>QualiTrack Level-II Statistical Quality Audit</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dimensional Inspection Specification Log Table (Calculated from LSL and USL) -->
+            <div class="mb-4 position-relative matrix-wrapper" style="z-index: 1;">
+                <div class="d-flex justify-content-between align-items-center mb-2 matrix-header">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-rulers text-primary me-2"></i>Dimensional Inspection Specification Matrix
+                    </h5>
+                    <span class="badge bg-light text-muted border">
+                        Digital Micrometer Tolerances (LSL &bull; Nominal &bull; USL)
+                    </span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm align-middle mb-0 matrix-table" style="font-size: 0.88rem;">
+                        <thead class="table-dark text-center" style="background-color: #0f172a;">
+                            <tr>
+                                <th class="ps-2" style="width: 50px;">ID</th>
+                                <th class="text-start">Parameter / Feature</th>
+                                <th>Lower Limit (LSL)</th>
+                                <th>Upper Limit (USL)</th>
+                                <th>Measured Value</th>
+                                <th>Variance (&Delta;)</th>
+                                <th>Conformance</th>
+                                <th>Inspector</th>
+                                <th>Review State</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in inspections_data %}
+                                <tr class="{% if not item.is_pass %}table-danger{% endif %}">
+                                    <td class="ps-2 text-muted font-monospace text-center">#{{ item.id }}</td>
+                                    <td class="fw-bold text-dark">
+                                        {{ item.parameter }}
+                                        <div class="small text-muted fw-normal">Unit #{{ item.sample_unit_number }}</div>
+                                    </td>
+                                    <td class="text-center font-monospace">{{ item.lsl|floatformat:3 }} mm</td>
+                                    <td class="text-center font-monospace">{{ item.usl|floatformat:3 }} mm</td>
+                                    <td class="text-center fw-bold font-monospace {% if item.is_pass %}text-success{% else %}text-danger{% endif %}">
+                                        {{ item.measured|floatformat:3 }} mm
+                                    </td>
+                                    <td class="text-center small font-monospace">
+                                        {{ item.delta_str }}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if item.is_pass %}
+                                            <span class="badge bg-success px-2 py-1"><i class="bi bi-check-circle me-1"></i>PASS</span>
+                                        {% else %}
+                                            <span class="badge bg-danger px-2 py-1"><i class="bi bi-x-circle me-1"></i>FAIL</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small">{{ item.inspector_name }}</td>
+                                    <td class="small text-center">
+                                        {% if item.status == 'APPROVED' %}
+                                            <span class="text-success fw-semibold"><i class="bi bi-check2-circle me-1"></i>Approved</span>
+                                        {% elif item.status == 'REJECTED' %}
+                                            <span class="text-danger fw-semibold"><i class="bi bi-x-octagon me-1"></i>Rejected</span>
+                                        {% elif item.status == 'RETURNED' %}
+                                            <span class="text-warning fw-semibold"><i class="bi bi-arrow-return-left me-1"></i>Returned</span>
+                                        {% else %}
+                                            <span class="text-muted"><i class="bi bi-clock me-1"></i>Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center py-4 text-muted">
+                                        <i class="bi bi-clipboard-x fs-3 d-block mb-1"></i>
+                                        No inspections recorded for this production job yet.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Process Holds Summary -->
+            {% if holds %}
+                <div class="card mb-4 border-warning position-relative" style="z-index: 1;">
+                    <div class="card-header bg-warning bg-opacity-10 py-2">
+                        <strong class="text-dark small"><i class="bi bi-slash-circle-fill text-warning me-1"></i>Process Holds Audit History</strong>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush small">
+                            {% for h in holds %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Hold #{{ h.id }}:</strong> {{ h.reason }}
+                                        <small class="text-muted d-block">Placed by {{ h.placed_by.username }} on {{ h.placed_at|date:"M d, Y H:i" }}</small>
+                                    </div>
+                                    <span class="badge {% if h.is_active %}bg-danger{% else %}bg-success{% endif %}">
+                                        {% if h.is_active %}ACTIVE HOLD{% else %}RELEASED{% endif %}
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Tri-Fold Official Verification & Stamp Row -->
+            <div class="row g-4 pt-3 border-top position-relative row-print-sign" style="z-index: 1;">
+                
+                <!-- 1. Metrology Inspector Verification Block -->
+                <div class="col-md-4 col-print-4">
+                    <div class="sign-box">
+                        <div class="text-muted small fw-semibold text-uppercase mb-2">
+                            <i class="bi bi-clipboard2-check text-primary me-1"></i>Metrology Inspector
+                        </div>
+                        
+                        <div class="sign-font">
+                            {% if inspections.first %}
+                                {{ inspections.first.inspector.first_name|default:inspections.first.inspector.username }}
+                            {% else %}
+                                Verified Inspector
+                            {% endif %}
+                        </div>
+                        
+                        <div class="sign-line"></div>
+
+                        <div class="fw-bold text-dark fs-6">
+                            {% if inspections.first %}
+                                {{ inspections.first.inspector.get_full_name|default:inspections.first.inspector.username }}
+                            {% else %}
+                                Certified Quality Inspector
+                            {% endif %}
+                        </div>
+                        <div class="small text-muted mt-1">Digital Calibration Stamp Applied</div>
+                        <div class="mt-2 text-success small fw-semibold">
+                            <i class="bi bi-patch-check-fill me-1"></i> Tooling Verified Within Calibration
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Circular Embossed Foil Seal Stamp -->
+                <div class="col-md-4 col-print-4 text-center d-flex align-items-center justify-content-center">
+                    {% if is_dispatch_authorized %}
+                        <div class="official-seal official-seal-authorized">
+                            <svg class="seal-icon-svg text-success" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                                <path d="M8 0c-.69 0-1.379.2-2 .6L1 3.6v4.8c0 4.1 2.9 7.8 7 8.6 4.1-.8 7-4.5 7-8.6V3.6L10 .6c-.621-.4-1.31-.6-2-.6zM2 4.2l6-2.6 6 2.6v4.2c0 3.6-2.5 6.8-6 7.6-3.5-.8-6-4-6-7.6V4.2z"/>
+                            </svg>
+                            <span class="seal-header-text">QUALITRACK QA</span>
+                            <span class="seal-status-text">OFFICIAL QA RELEASE</span>
+                            <small style="font-size: 0.58rem; letter-spacing: 0.05em; font-weight: 700; color: #047857;">DISPATCH CERTIFIED</small>
+                        </div>
+                    {% else %}
+                        <div class="official-seal official-seal-provisional">
+                            <svg class="seal-icon-svg text-warning" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.553.553 0 0 1-1.1 0L7.1 4.995z"/>
+                                <path d="M8 0c-.69 0-1.379.2-2 .6L1 3.6v4.8c0 4.1 2.9 7.8 7 8.6 4.1-.8 7-4.5 7-8.6V3.6L10 .6c-.621-.4-1.31-.6-2-.6zM2 4.2l6-2.6 6 2.6v4.2c0 3.6-2.5 6.8-6 7.6-3.5-.8-6-4-6-7.6V4.2z"/>
+                            </svg>
+                            <span class="seal-header-text">QUALITRACK QC</span>
+                            <span class="seal-status-text" style="color: #b45309;">PROVISIONAL</span>
+                            <small style="font-size: 0.58rem; letter-spacing: 0.05em; font-weight: 700; color: #92400e;">PENDING CLEARANCE</small>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- 3. Quality Assurance Supervisor Dispatch Sign-Off Block -->
+                <div class="col-md-4 col-print-4">
+                    <div class="sign-box">
+                        <div class="text-muted small fw-semibold text-uppercase mb-2">
+                            <i class="bi bi-award text-success me-1"></i>QA Supervisor Authority
+                        </div>
+
+                        <div class="sign-font">
+                            {% if job.cleared_by %}
+                                {{ job.cleared_by.first_name|default:job.cleared_by.username }}
+                            {% else %}
+                                Pending Approval
+                            {% endif %}
+                        </div>
+
+                        <div class="sign-line"></div>
+
+                        <div class="fw-bold text-dark fs-6">
+                            {% if job.cleared_by %}
+                                {{ job.cleared_by.get_full_name|default:job.cleared_by.username }}
+                            {% else %}
+                                Authorized QA Supervisor
+                            {% endif %}
+                        </div>
+                        <div class="small text-muted mt-1">
+                            {% if cleared_at_utc %}
+                                Cleared: {{ cleared_at_utc }}
+                            {% else %}
+                                Awaiting Final Sign-Off
+                            {% endif %}
+                        </div>
+                        <div class="mt-2 {% if is_dispatch_authorized %}text-success{% else %}text-secondary{% endif %} small fw-semibold">
+                            {% if is_dispatch_authorized %}
+                                <i class="bi bi-shield-fill-check me-1"></i> Gate Release Approved
+                            {% else %}
+                                <i class="bi bi-hourglass-split me-1"></i> Clearance Pending
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer: Digital Cryptographic Tamper-Evident SHA-256 Digest -->
+            <div class="mt-4 pt-3 border-top position-relative digest-container" style="z-index: 1;">
+                <div class="d-flex justify-content-end align-items-center flex-wrap gap-2 text-muted small mb-2">
+                    <div>
+                        <strong>Certificate ID:</strong> <span class="font-monospace text-dark fw-bold">{{ cert_number }}</span>
+                    </div>
+                </div>
+                
+                <!-- Genuine SHA-256 Verification Digest Box -->
+                <div class="digest-box d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <strong>Cryptographic SHA-256 Digest:</strong>
+                        <span class="text-primary font-monospace">{{ cert_hash }}</span>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary py-0 px-2 no-print" onclick="navigator.clipboard.writeText('{{ cert_hash }}'); alert('SHA-256 Hash copied to clipboard!')">
+                        <i class="bi bi-clipboard me-1"></i> Copy Hash
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function printCertificate() {
+    // 1. Direct high-fidelity vector printing of the 1-page PDF
+    const pdfUrl = "{% url 'job_certificate' pk=job.id %}?format=pdf";
+    let printFrame = document.getElementById('printPdfIframe');
+    if (!printFrame) {
+        printFrame = document.createElement('iframe');
+        printFrame.id = 'printPdfIframe';
+        printFrame.style.position = 'fixed';
+        printFrame.style.top = '-10000px';
+        printFrame.style.left = '-10000px';
+        printFrame.style.width = '1px';
+        printFrame.style.height = '1px';
+        printFrame.style.border = 'none';
+        document.body.appendChild(printFrame);
+    }
+    printFrame.src = pdfUrl;
+    printFrame.onload = function() {
+        setTimeout(function() {
+            try {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+            } catch(e) {
+                // Guaranteed 1-page fallback via optimized print stylesheet
+                window.print();
+            }
+        }, 350);
+    };
+}
+</script>
+{% endblock %}
