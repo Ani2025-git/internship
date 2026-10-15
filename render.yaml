@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: qualitrack
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn factory_system.wsgi:application"
+    plan: free
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: WEB_CONCURRENCY
+        value: "4"
