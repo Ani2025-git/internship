@@ -78,6 +78,23 @@ class QualiTrackFeatureTests(TestCase):
         response = self.client.get(reverse('supervisor_dashboard'))
         self.assertRedirects(response, reverse('inspector_dashboard'))
 
+    def test_home_page_renders_successfully(self):
+        """Test that the public home page renders 200 OK with metrics and role links."""
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "QualiTrack")
+        self.assertContains(response, "Enter Factory Portal")
+        self.assertContains(response, "INSPECTOR")
+        self.assertContains(response, "SUPERVISOR")
+        self.assertContains(response, "ADMIN")
+
+    def test_home_page_redirects_authenticated_user(self):
+        """Test that an authenticated user visiting home is redirected to dashboard redirect."""
+        self.client.login(username='test_inspector', password='password123')
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('dashboard_redirect'))
+
     # --------------------------------------------------------------------------
     # FEATURE 2: Inspection Management & PASS/FAIL Calculation Tests
     # --------------------------------------------------------------------------

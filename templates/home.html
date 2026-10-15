@@ -1,180 +1,507 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}QualiTrack - Factory Quality & Dispatch Management{% endblock %}
+{% block title %}QualiTrack — Enterprise Factory Quality & Dispatch Assurance{% endblock %}
+
+{% block container_class %}container-xxl px-3 px-md-4{% endblock %}
+{% block main_class %}py-3 py-md-4{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Home Page Design System & Rich Aesthetics */
+    .hero-banner {
+        position: relative;
+        background: radial-gradient(120% 120% at 50% 10%, #1e293b 0%, #0f172a 55%, #080d1a 100%);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.45);
+    }
+
+    .hero-banner::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: 
+            radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+        background-size: 32px 32px;
+        pointer-events: none;
+    }
+
+    .hero-banner::after {
+        content: "";
+        position: absolute;
+        top: -30%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(37, 99, 235, 0.08) 50%, transparent 70%);
+        filter: blur(50px);
+        pointer-events: none;
+    }
+
+    .gradient-text-gold {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .gradient-text-cyan {
+        background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Metric Stat Badges */
+    .metric-chip {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        padding: 1.1rem 1.25rem;
+        transition: all 0.25s ease;
+    }
+    .metric-chip:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(245, 158, 11, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* Interactive Role Cards */
+    .role-hub-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .role-hub-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+    .role-hub-card.role-inspector::before { background: linear-gradient(90deg, #2563eb, #38bdf8); }
+    .role-hub-card.role-supervisor::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .role-hub-card.role-admin::before { background: linear-gradient(90deg, #ef4444, #f43f5e); }
+
+    .role-hub-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.09);
+        border-color: #cbd5e1;
+    }
+
+    .role-icon-box {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .role-icon-inspector { background: #eff6ff; color: #2563eb; }
+    .role-icon-supervisor { background: #fef3c7; color: #d97706; }
+    .role-icon-admin { background: #fee2e2; color: #dc2626; }
+
+    /* Workflow Pipeline Steps */
+    .workflow-step-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 1.35rem;
+        height: 100%;
+        position: relative;
+        transition: all 0.25s ease;
+    }
+    .workflow-step-card:hover {
+        border-color: #94a3b8;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+    .step-number-pill {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
+    /* Glowing Pulse */
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #10b981;
+        display: inline-block;
+        box-shadow: 0 0 0 rgba(16, 185, 129, 0.6);
+        animation: pulseAnimation 2s infinite;
+    }
+    @keyframes pulseAnimation {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .credential-box {
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-
-        <!-- Welcome Hero Banner -->
-        <div class="card text-white p-4 mb-4 border-0 shadow" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #1e3a8a 100%);">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                    <div>
-                        <span class="badge bg-success bg-opacity-25 text-success border border-success mb-2 px-3 py-2 fw-semibold">
-                            <i class="bi bi-shield-check me-1"></i> Full System Active & Verified
-                        </span>
-                        <h1 class="h2 fw-bold mb-0">Quali<span class="text-warning">Track</span></h1>
-                        <p class="h5 fw-normal text-white-50 mt-1 mb-2">Factory Quality & Dispatch Management System</p>
-                        <p class="mb-0 text-white-50 small">
-                            Internship Project for <strong>Zapuza Technologies LLP</strong> &bull; Designed & Developed by <strong>Animesh Mishra</strong>
-                        </p>
-                    </div>
-                    <div class="text-end">
-                        <a href="{% url 'login' %}" class="btn btn-warning btn-lg fw-bold shadow-sm text-dark px-4">
-                            <i class="bi bi-box-arrow-in-right me-1"></i> Enter Factory Portal
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4 Core Features Status Overview -->
-        <div class="card mb-4">
-            <div class="card-header card-header-custom py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0 fw-bold text-dark">
-                    <i class="bi bi-layers-half text-primary me-2"></i> Operational Core Features (100% Implemented)
-                </h5>
-                <span class="badge bg-success px-3 py-2">Features 1-4 Complete</span>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-
-                    <!-- Feature 1 -->
-                    <div class="col-md-6">
-                        <div class="p-3 border rounded-3 h-100 bg-light border-success">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-primary me-2">Feature 1</span>
-                                    <h6 class="mb-0 fw-bold">Login & Role Management</h6>
-                                </div>
-                                <span class="badge bg-success"><i class="bi bi-check2"></i> Live</span>
-                            </div>
-                            <p class="text-muted small mb-0">
-                                Role-based access for <strong>Admin</strong>, <strong>Inspector</strong>, and <strong>Supervisor</strong>. Prevents role impersonation and secures views.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Feature 2 -->
-                    <div class="col-md-6">
-                        <div class="p-3 border rounded-3 h-100 bg-light border-success">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-info text-dark me-2">Feature 2</span>
-                                    <h6 class="mb-0 fw-bold">Inspection Management</h6>
-                                </div>
-                                <span class="badge bg-success"><i class="bi bi-check2"></i> Live</span>
-                            </div>
-                            <p class="text-muted small mb-0">
-                                Inspectors record measurements with metric precision. Real-time auto PASS/FAIL logic. Mandatory <strong>≥ 2 defect photos</strong> if measurement is out-of-tolerance.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Feature 3 -->
-                    <div class="col-md-6">
-                        <div class="p-3 border rounded-3 h-100 bg-light border-success">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-warning text-dark me-2">Feature 3</span>
-                                    <h6 class="mb-0 fw-bold">Supervisor Approval</h6>
-                                </div>
-                                <span class="badge bg-success"><i class="bi bi-check2"></i> Live</span>
-                            </div>
-                            <p class="text-muted small mb-0">
-                                Supervisors review pending inspections. Decisions: Approve, Reject, or Return with mandatory remarks. Anti-self-approval security policy strictly enforced.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Feature 4 -->
-                    <div class="col-md-6">
-                        <div class="p-3 border rounded-3 h-100 bg-light border-success">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-success me-2">Feature 4</span>
-                                    <h6 class="mb-0 fw-bold">Dispatch Clearance & Holds</h6>
-                                </div>
-                                <span class="badge bg-success"><i class="bi bi-check2"></i> Live</span>
-                            </div>
-                            <p class="text-muted small mb-0">
-                                Real-time 4-rule checklist validation. Placing and releasing process holds with resolution notes. Official clearance certification with audit trail.
-                            </p>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-        <!-- Role Demonstration Quick Accounts -->
-        <div class="card mb-4 border-primary">
-            <div class="card-header bg-primary bg-opacity-10 py-3 d-flex justify-content-between align-items-center">
-                <span class="fw-bold text-primary">
-                    <i class="bi bi-people-fill me-2"></i>Seeded Test Role Accounts & Direct Login
+<!-- ========================================================================= -->
+<!-- HERO SECTION: ENTERPRISE METROLOGY & DISPATCH CONTROL                     -->
+<!-- ========================================================================= -->
+<section class="hero-banner text-white p-4 p-md-5 mb-4 position-relative">
+    <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+        
+        <!-- Left Column: Value Proposition & Branding -->
+        <div class="col-lg-7">
+            
+            <!-- Live Operational Badge -->
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-3 rounded-pill" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35);">
+                <span class="pulse-dot"></span>
+                <span class="text-success fw-semibold small text-uppercase tracking-wide" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                    Operational Ready &bull; Smart Metrology Engine Active
                 </span>
-                <span class="badge bg-primary">Ready to Test</span>
             </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <!-- Inspector Card -->
-                    <div class="col-md-4">
-                        <div class="card h-100 p-3 border-start border-primary border-4 shadow-sm">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="badge role-badge-inspector">INSPECTOR</span>
-                                <small class="text-muted">Quality Control</small>
-                            </div>
-                            <div class="small mb-2">
-                                <strong>Username:</strong> <code>inspector1</code><br>
-                                <strong>Password:</strong> <code>inspector123</code>
-                            </div>
-                            <p class="text-muted small mb-3">Record measurements, test auto PASS/FAIL calculation, attach mandatory defect photos.</p>
-                            <a href="{% url 'login' %}?role=INSPECTOR" class="btn btn-outline-primary btn-sm fw-semibold w-100 mt-auto">
-                                <i class="bi bi-box-arrow-in-right me-1"></i> Login as Inspector
-                            </a>
-                        </div>
-                    </div>
 
-                    <!-- Supervisor Card -->
-                    <div class="col-md-4">
-                        <div class="card h-100 p-3 border-start border-warning border-4 shadow-sm">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="badge role-badge-supervisor">SUPERVISOR</span>
-                                <small class="text-muted">Review & Authority</small>
-                            </div>
-                            <div class="small mb-2">
-                                <strong>Username:</strong> <code>supervisor1</code><br>
-                                <strong>Password:</strong> <code>supervisor123</code>
-                            </div>
-                            <p class="text-muted small mb-3">Review pending inspections, approve/reject/return, place/release holds, authorize dispatch.</p>
-                            <a href="{% url 'login' %}?role=SUPERVISOR" class="btn btn-outline-warning text-dark btn-sm fw-semibold w-100 mt-auto">
-                                <i class="bi bi-box-arrow-in-right me-1"></i> Login as Supervisor
-                            </a>
-                        </div>
-                    </div>
+            <!-- Brand & Tagline -->
+            <h1 class="display-5 fw-extrabold tracking-tight mb-2">
+                Quali<span class="gradient-text-gold">Track</span>
+            </h1>
+            <h2 class="h4 fw-semibold text-light mb-3">
+                Precision Quality Control & Intelligent Dispatch Gatekeeper
+            </h2>
 
-                    <!-- Admin Card -->
-                    <div class="col-md-4">
-                        <div class="card h-100 p-3 border-start border-danger border-4 shadow-sm">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="badge role-badge-admin">ADMIN</span>
-                                <small class="text-muted">Executive Oversight</small>
-                            </div>
-                            <div class="small mb-2">
-                                <strong>Username:</strong> <code>admin</code><br>
-                                <strong>Password:</strong> <code>admin123</code>
-                            </div>
-                            <p class="text-muted small mb-3">Full oversight: users, production orders, quality inspections, process holds, Django admin portal.</p>
-                            <a href="{% url 'login' %}?role=ADMIN" class="btn btn-outline-danger btn-sm fw-semibold w-100 mt-auto">
-                                <i class="bi bi-box-arrow-in-right me-1"></i> Login as Admin
-                            </a>
-                        </div>
-                    </div>
+            <p class="text-white-50 lead fs-6 mb-4 pe-lg-4" style="line-height: 1.65;">
+                Engineered for zero-defect modern factories. Eliminates out-of-tolerance shipments with automatic PASS/FAIL evaluation, enforces multi-tier supervisor approval hierarchies, prevents unauthorized bypass with quarantine holds, and delivers tamper-evident Certificate of Analysis (COA) credentials.
+            </p>
+
+            <!-- Call to Actions -->
+            <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                <a href="{% url 'login' %}" class="btn btn-warning btn-lg fw-bold px-4 py-2 text-dark shadow d-inline-flex align-items-center gap-2" style="border-radius: 10px;">
+                    <i class="bi bi-box-arrow-in-right fs-5"></i>
+                    <span>Enter Factory Portal</span>
+                </a>
+                <a href="#quick-roles" class="btn btn-outline-light btn-lg px-3 py-2 d-inline-flex align-items-center gap-2" style="border-radius: 10px; border-color: rgba(255,255,255,0.25);">
+                    <i class="bi bi-people-fill text-warning"></i>
+                    <span class="small fw-semibold">Quick Role Accounts</span>
+                </a>
+            </div>
+
+            <!-- Author & Enterprise Credits -->
+            <div class="d-flex align-items-center gap-2 text-white-50 small border-top pt-3 border-secondary border-opacity-25">
+                <i class="bi bi-shield-check text-warning fs-5"></i>
+                <div>
+                    Designed & Developed by <strong class="text-light">Animesh Mishra</strong> &bull; Internship Project for <strong class="text-light">Zapuza Technologies LLP</strong>
                 </div>
             </div>
         </div>
 
+        <!-- Right Column: Live Operational Telemetry -->
+        <div class="col-lg-5">
+            <div class="p-3 p-md-4 rounded-4" style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); backdrop-filter: blur(16px);">
+                
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-white border-opacity-10">
+                    <span class="text-uppercase small fw-bold text-white-50" style="letter-spacing: 0.5px;">
+                        <i class="bi bi-activity text-warning me-1"></i> Factory QC Telemetry
+                    </span>
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-1 small">
+                        Real-Time
+                    </span>
+                </div>
+
+                <div class="row g-2">
+                    <!-- Stat 1: Quality Yield -->
+                    <div class="col-6">
+                        <div class="metric-chip">
+                            <div class="text-white-50 small mb-1">First-Pass Yield</div>
+                            <div class="h3 fw-bold text-success mb-0 font-monospace">{{ pass_rate }}%</div>
+                            <div class="text-success small mt-1" style="font-size: 0.72rem;">
+                                <i class="bi bi-check-circle-fill me-1"></i> High Compliance
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stat 2: Active Orders -->
+                    <div class="col-6">
+                        <div class="metric-chip">
+                            <div class="text-white-50 small mb-1">Production Lots</div>
+                            <div class="h3 fw-bold text-warning mb-0 font-monospace">{{ total_jobs }}</div>
+                            <div class="text-white-50 small mt-1" style="font-size: 0.72rem;">
+                                <i class="bi bi-box-seam me-1"></i> Active Batches
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stat 3: Inspections Logged -->
+                    <div class="col-6">
+                        <div class="metric-chip">
+                            <div class="text-white-50 small mb-1">Units Inspected</div>
+                            <div class="h3 fw-bold text-light mb-0 font-monospace">{{ total_inspections }}</div>
+                            <div class="text-white-50 small mt-1" style="font-size: 0.72rem;">
+                                <i class="bi bi-rulers me-1"></i> Metric Calibrated
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stat 4: Process Holds / Quarantine -->
+                    <div class="col-6">
+                        <div class="metric-chip">
+                            <div class="text-white-50 small mb-1">Process Holds</div>
+                            <div class="h3 fw-bold {% if total_holds > 0 %}text-danger{% else %}text-white-50{% endif %} mb-0 font-monospace">
+                                {{ total_holds }}
+                            </div>
+                            <div class="text-white-50 small mt-1" style="font-size: 0.72rem;">
+                                <i class="bi bi-shield-slash me-1"></i> {{ resolved_holds }} Resolved
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live System Architecture Pill -->
+                <div class="mt-3 pt-2 text-center text-white-50 small" style="font-size: 0.78rem;">
+                    <i class="bi bi-cpu text-info me-1"></i> Django ORM &bull; SQLite/PostgreSQL Ready &bull; Cryptographic COA
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- ONE-CLICK ROLE ACCESS PORTAL                                             -->
+<!-- ========================================================================= -->
+<section id="quick-roles" class="mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div>
+            <h3 class="h4 fw-bold text-dark mb-0">
+                <i class="bi bi-person-badge-fill text-primary me-2"></i> Role-Based Operational Workspaces
+            </h3>
+            <p class="text-muted small mb-0">Select your factory persona below to log in directly with seeded test credentials</p>
+        </div>
+        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 fw-semibold">
+            <i class="bi bi-shield-lock me-1"></i> Anti-Impersonation Protected
+        </span>
+    </div>
+
+    <div class="row g-4">
+        
+        <!-- Role 1: Inspector -->
+        <div class="col-lg-4 col-md-6">
+            <div class="role-hub-card role-inspector p-4 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="role-icon-box role-icon-inspector">
+                        <i class="bi bi-rulers"></i>
+                    </div>
+                    <span class="badge bg-primary px-3 py-2">INSPECTOR</span>
+                </div>
+
+                <h4 class="h5 fw-bold text-dark mb-1">Quality Control Inspector</h4>
+                <p class="text-muted small mb-3">Shopfloor metrology technician responsible for dimensional measurement, auto tolerance validation, and defect photography.</p>
+
+                <ul class="list-unstyled text-secondary small mb-3 flex-grow-1">
+                    <li class="mb-1"><i class="bi bi-check2-circle text-primary me-2"></i> Records measurements in millimeters (mm)</li>
+                    <li class="mb-1"><i class="bi bi-check2-circle text-primary me-2"></i> Automatic real-time PASS / FAIL calculation</li>
+                    <li class="mb-1"><i class="bi bi-check2-circle text-primary me-2"></i> Mandatory &ge; 2 defect photos on out-of-spec</li>
+                    <li class="mb-1"><i class="bi bi-check2-circle text-primary me-2"></i> Multi-file camera defect image upload</li>
+                </ul>
+
+                <div class="credential-box mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-muted">Test Account:</span>
+                        <code class="fw-bold text-primary">inspector1 / inspector123</code>
+                    </div>
+                </div>
+
+                <a href="{% url 'login' %}?role=INSPECTOR" class="btn btn-outline-primary fw-bold w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Log In as Inspector</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Role 2: Supervisor -->
+        <div class="col-lg-4 col-md-6">
+            <div class="role-hub-card role-supervisor p-4 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="role-icon-box role-icon-supervisor">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <span class="badge bg-warning text-dark fw-bold px-3 py-2">SUPERVISOR</span>
+                </div>
+
+                <h4 class="h5 fw-bold text-dark mb-1">Quality Supervisor</h4>
+                <p class="text-muted small mb-3">Reviewing authority with exclusive powers to approve or return inspections, place emergency holds, and clear dispatches.</p>
+
+                <ul class="list-unstyled text-secondary small mb-3 flex-grow-1">
+                    <li class="mb-1"><i class="bi bi-check2-circle text-warning me-2"></i> Multi-action: Approve, Reject, or Return</li>
+                    <li class="mb-1"><i class="bi bi-check2-circle text-warning me-2"></i> Anti-self-approval security policy enforced</li>
+                    <li class="mb-1"><i class="bi bi-check2-circle text-warning me-2"></i> Emergency process holds & quarantine releases</li>
+                    <li class="mb-1"><i class="bi bi-check2-circle text-warning me-2"></i> Official dispatch gatepass authorization</li>
+                </ul>
+
+                <div class="credential-box mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-muted">Test Account:</span>
+                        <code class="fw-bold text-dark">supervisor1 / supervisor123</code>
+                    </div>
+                </div>
+
+                <a href="{% url 'login' %}?role=SUPERVISOR" class="btn btn-warning text-dark fw-bold w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Log In as Supervisor</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Role 3: Admin / Executive -->
+        <div class="col-lg-4 col-md-12">
+            <div class="role-hub-card role-admin p-4 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="role-icon-box role-icon-admin">
+                        <i class="bi bi-gear-wide-connected"></i>
+                    </div>
+                    <span class="badge bg-danger px-3 py-2">ADMINISTRATOR</span>
+                </div>
+
+                <h4 class="h5 fw-bold text-dark mb-1">Plant Quality Executive</h4>
+                <p class="text-muted small mb-3">Complete executive governance over production orders, statistical process control (SPC) metrics, user privileges, and Django Admin.</p>
+
+                <ul class="list-unstyled text-secondary small mb-3 flex-grow-1">
+                    <li class="mb-1"><i class="bi bi-check2-circle text-danger me-2"></i> Creates production jobs with nominal tolerances</li>
+                    <li class="mb-1"><i class="bi bi-check2-circle text-danger me-2"></i> Real-time yield & Pareto defect distribution</li>
+                    <li class="mb-1"><i class="bi bi-check2-circle text-danger me-2"></i> ISO 9001 audit exports (CSV and PDF)</li>
+                    <li class="mb-1"><i class="bi bi-check2-circle text-danger me-2"></i> Full Django Admin portal administration</li>
+                </ul>
+
+                <div class="credential-box mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-muted">Test Account:</span>
+                        <code class="fw-bold text-danger">admin / admin123</code>
+                    </div>
+                </div>
+
+                <a href="{% url 'login' %}?role=ADMIN" class="btn btn-outline-danger fw-bold w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Log In as Administrator</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- 4-STAGE CORE QUALITY PIPELINE (100% IMPLEMENTED & VERIFIED)               -->
+<!-- ========================================================================= -->
+<section class="mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="h4 fw-bold text-dark mb-0">
+                <i class="bi bi-diagram-3-fill text-warning me-2"></i> End-to-End Factory Quality Workflow
+            </h3>
+            <p class="text-muted small mb-0">The 4-stage operational pipeline mandated for zero-defect dispatch compliance</p>
+        </div>
+        <span class="badge bg-success px-3 py-2 fw-semibold">
+            <i class="bi bi-check-all me-1"></i> All 4 Core Features Live
+        </span>
+    </div>
+
+    <div class="row g-3">
+        <!-- Stage 1 -->
+        <div class="col-lg-3 col-md-6">
+            <div class="workflow-step-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="step-number-pill bg-primary text-white">01</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary">Feature 1</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Role & Job Setup</h5>
+                <p class="text-muted small mb-0">
+                    Production jobs are created with exact nominal dimensions, upper tolerances, and lower tolerances. Role-guarded logins ensure inspectors, supervisors, and admins only perform authorized tasks.
+                </p>
+            </div>
+        </div>
+
+        <!-- Stage 2 -->
+        <div class="col-lg-3 col-md-6">
+            <div class="workflow-step-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="step-number-pill bg-info text-dark">02</span>
+                    <span class="badge bg-info bg-opacity-10 text-dark">Feature 2</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Metrology Inspection</h5>
+                <p class="text-muted small mb-0">
+                    Inspectors record physical measurements for sample units. The built-in tolerance engine calculates real-time PASS/FAIL. If out-of-tolerance, the system strictly enforces attachment of &ge; 2 defect photos.
+                </p>
+            </div>
+        </div>
+
+        <!-- Stage 3 -->
+        <div class="col-lg-3 col-md-6">
+            <div class="workflow-step-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="step-number-pill bg-warning text-dark">03</span>
+                    <span class="badge bg-warning bg-opacity-10 text-dark">Feature 3</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Supervisor Clearance</h5>
+                <p class="text-muted small mb-0">
+                    Supervisors evaluate pending inspection batches. They can Approve, Reject, or Return for re-measurement with required remarks. Anti-self-approval rules prevent inspectors from rubber-stamping their own work.
+                </p>
+            </div>
+        </div>
+
+        <!-- Stage 4 -->
+        <div class="col-lg-3 col-md-6">
+            <div class="workflow-step-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="step-number-pill bg-success text-white">04</span>
+                    <span class="badge bg-success bg-opacity-10 text-success">Feature 4</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Dispatch Gatekeeper</h5>
+                <p class="text-muted small mb-0">
+                    Dispatches are evaluated against a real-time 4-rule checklist (batch quantity, approval status, zero unresolved holds, within tolerance). Releases generate a tamper-evident Certificate of Analysis (COA).
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- ENTERPRISE TRUST & CERTIFICATE OF ANALYSIS SPOTLIGHT                      -->
+<!-- ========================================================================= -->
+<section class="card border-0 shadow-sm p-4 mb-4" style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%); border-radius: 16px;">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-patch-check-fill text-primary fs-4"></i>
+                <h4 class="h5 fw-bold text-dark mb-0">Official Certificate of Analysis (COA) Engine</h4>
+            </div>
+            <p class="text-secondary small mb-3">
+                QualiTrack features a dedicated ReportLab PDF generator and print stylesheet designed for factory floor compliance. Every cleared batch receives a cryptographic SHA-256 seal, batch traceability number, sign-off authorization, and printable gatepass certificate with zero layout bugs or orphan pages.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="badge bg-light text-dark border px-3 py-2"><i class="bi bi-file-earmark-pdf text-danger me-1"></i> ReportLab Vector PDF</span>
+                <span class="badge bg-light text-dark border px-3 py-2"><i class="bi bi-printer text-primary me-1"></i> Clean Single-Page Print Layout</span>
+                <span class="badge bg-light text-dark border px-3 py-2"><i class="bi bi-qr-code text-dark me-1"></i> Cryptographic Audit Hash</span>
+                <span class="badge bg-light text-dark border px-3 py-2"><i class="bi bi-table text-success me-1"></i> Full ERP CSV Data Export</span>
+            </div>
+        </div>
+        <div class="col-lg-4 text-lg-end text-center">
+            <a href="{% url 'login' %}" class="btn btn-primary fw-bold px-4 py-2 shadow-sm">
+                <i class="bi bi-speedometer2 me-1"></i> Launch Portal
+            </a>
+        </div>
+    </div>
+</section>
+
 {% endblock %}

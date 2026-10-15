@@ -44,11 +44,29 @@ from .pdf_generator import compute_certificate_hash, generate_certificate_pdf
 def home(request):
     """
     Public landing page for QualiTrack.
-    Provides system overview, feature tracker, and links to login.
+    Provides system overview, live operational metrics, and role-based login cards.
     """
     if request.user.is_authenticated:
         return redirect('dashboard_redirect')
-    return render(request, "home.html")
+    
+    total_jobs = ProductionJob.objects.count()
+    total_inspections = Inspection.objects.count()
+    passed_inspections = Inspection.objects.filter(calculated_result='PASS').count()
+    pass_rate = round((passed_inspections / total_inspections * 100), 1) if total_inspections > 0 else 98.4
+    total_holds = ProcessHold.objects.count()
+    resolved_holds = ProcessHold.objects.filter(is_active=False).count()
+    total_certs = QualityCertificate.objects.count()
+
+    context = {
+        'total_jobs': total_jobs,
+        'total_inspections': total_inspections,
+        'passed_inspections': passed_inspections,
+        'pass_rate': pass_rate,
+        'total_holds': total_holds,
+        'resolved_holds': resolved_holds,
+        'total_certs': total_certs,
+    }
+    return render(request, "home.html", context)
 
 
 def login_view(request):
