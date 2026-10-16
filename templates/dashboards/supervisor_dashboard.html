@@ -237,11 +237,7 @@
                             <td>
                                 {% if insp.defect_photos.count > 0 %}
                                     <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 view-photos-btn" 
-                                            data-photos='[
-                                                {% for p in insp.defect_photos.all %}
-                                                    {"url": "{{ p.image.url }}", "caption": "{{ p.caption|default:"Defect capture" }}"}{% if not forloop.last %},{% endif %}
-                                                {% endfor %}
-                                            ]'>
+                                            data-photos='[{% for p in insp.defect_photos.all %}{"url": "{{ p.image.url|escapejs }}", "caption": "{{ p.caption|default:"Defect capture"|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>
                                         <i class="bi bi-images me-1"></i>{{ insp.defect_photos.count }} Photos
                                     </button>
                                 {% else %}
@@ -300,7 +296,7 @@
                 <tbody>
                     <!-- Blocked Jobs -->
                     {% for item in blocked_jobs %}
-                        <tr class="table-light">
+                        <tr class="table-light job-row job-row-blocked">
                             <td class="ps-3 fw-bold">
                                 <a href="{% url 'job_detail' pk=item.job.id %}" class="text-dark text-decoration-none">
                                     {{ item.job.job_number }}
@@ -331,7 +327,7 @@
 
                     <!-- Ready Jobs -->
                     {% for job in ready_jobs %}
-                        <tr class="table-success bg-opacity-25">
+                        <tr class="table-success bg-opacity-25 job-row job-row-ready">
                             <td class="ps-3 fw-bold">
                                 <a href="{% url 'job_detail' pk=job.id %}" class="text-success text-decoration-none">
                                     {{ job.job_number }}
@@ -361,7 +357,7 @@
 
                     <!-- Cleared Jobs -->
                     {% for job in cleared_jobs %}
-                        <tr class="table-light text-muted">
+                        <tr class="table-light text-muted job-row job-row-cleared">
                             <td class="ps-3 fw-bold">
                                 <a href="{% url 'job_detail' pk=job.id %}" class="text-muted text-decoration-none">
                                     {{ job.job_number }}
@@ -562,14 +558,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 secPending.style.display = '';
                 secDispatch.style.display = '';
                 secHolds.style.display = '';
+                document.querySelectorAll('#dispatchTable tbody tr.job-row').forEach(r => r.style.display = '');
             } else if (target === 'pending') {
                 secPending.style.display = '';
                 secDispatch.style.display = 'none';
                 secHolds.style.display = 'none';
-            } else if (target === 'ready' || target === 'blocked') {
+            } else if (target === 'ready') {
                 secPending.style.display = 'none';
                 secDispatch.style.display = '';
                 secHolds.style.display = 'none';
+                document.querySelectorAll('#dispatchTable tbody tr.job-row').forEach(r => {
+                    r.style.display = r.classList.contains('job-row-ready') ? '' : 'none';
+                });
+            } else if (target === 'blocked') {
+                secPending.style.display = 'none';
+                secDispatch.style.display = '';
+                secHolds.style.display = 'none';
+                document.querySelectorAll('#dispatchTable tbody tr.job-row').forEach(r => {
+                    r.style.display = r.classList.contains('job-row-blocked') ? '' : 'none';
+                });
             } else if (target === 'holds') {
                 secPending.style.display = 'none';
                 secDispatch.style.display = 'none';

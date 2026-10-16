@@ -541,3 +541,43 @@ class QualiTrackFeatureTests(TestCase):
         self.assertEqual(response['Content-Type'], 'text/csv')
         self.assertIn('Job_Number,Product_Name', response.content.decode('utf-8'))
 
+    def test_login_redirects_to_next_url(self):
+        """Test that login safely redirects to next parameter when provided."""
+        next_target = reverse('inspection_create')
+        response = self.client.post(reverse('login'), {
+            'username': 'test_inspector',
+            'password': 'password123',
+            'role': 'INSPECTOR',
+            'next': next_target,
+        })
+        self.assertRedirects(response, next_target)
+
+    def test_inspection_form_orders_pending_batches_first(self):
+        """Test that InspectionCreateForm orders PENDING batches before CLEARED batches."""
+        cleared_job = ProductionJob.objects.create(
+            job_number='JOB-CLEARED-099',
+            product_name='Cleared Batch',
+            dispatch_status='CLEARED'
+        )
+        form = InspectionCreateForm()
+        jobs_list = list(form.fields['job'].queryset)
+        # Find index of pending vs cleared job
+        pending_idx = next(i for i, j in enumerate(jobs_list) if j.dispatch_status == 'PENDING')
+        cleared_idx = next(i for i, j in enumerate(jobs_list) if j.id == cleared_job.id)
+        self.assertLess(pending_idx, cleared_idx)
+
+    def test_inspection_detail_context_has_calculated_result(self):
+        """Test that inspection detail view passes calculated_result in context for template styling."""
+        insp = Inspection.objects.create(
+            job=self.job,
+            inspector=self.inspector_user,
+            parameter_name='Thickness',
+            min_limit=Decimal('10.000'),
+            max_limit=Decimal('10.500'),
+            measurement=Decimal('10.250'),
+        )
+        self.client.login(username='test_inspector', password='password123')
+        response = self.client.get(reverse('inspection_detail', kwargs={'pk': insp.id}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['calculated_result'], 'PASS')
+

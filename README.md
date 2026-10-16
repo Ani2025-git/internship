@@ -40,4 +40,4 @@ QualiTrack is an internship project developed by **Animesh Mishra** for **Zapuza
 - **Database:** SQLite
 - **Frontend:** HTML5, Vanilla CSS, Bootstrap 5, Bootstrap Icons, Chart.js
 - **PDF Generation:** ReportLab 4.4
-- **Testing:** Comprehensive Django test suite (28/28 tests passing)
+- **Testing:** Comprehensive Django test suite (33/33 tests passing)

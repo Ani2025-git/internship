@@ -67,8 +67,11 @@
 
             <!-- Login Body -->
             <div class="card-body p-4 p-md-4">
-                <form method="POST" action="{% url 'login' %}" novalidate>
+                <form method="POST" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" novalidate>
                     {% csrf_token %}
+                    {% if request.GET.next %}
+                        <input type="hidden" name="next" value="{{ request.GET.next }}">
+                    {% endif %}
 
                     <!-- Form Non-field Errors (e.g. Invalid credentials or Role mismatch) -->
                     {% if form.non_field_errors %}

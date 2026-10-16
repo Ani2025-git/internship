@@ -21,7 +21,8 @@ from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Count
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.db.models import Count, Q
 
 from django.conf import settings
 from .forms import (
@@ -90,6 +91,11 @@ def login_view(request):
                 request,
                 f"Welcome, {user.first_name or user.username}! You are securely logged in as {role_name}."
             )
+
+            # Check for safe next redirect parameter
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                return redirect(next_url)
 
             # Route to appropriate dashboard
             role = profile.role if profile else ('ADMIN' if user.is_superuser else None)
@@ -269,7 +275,7 @@ def admin_dashboard(request):
     
     users = UserProfile.objects.select_related('user').all().order_by('role', 'user__username')
     recent_inspections = Inspection.objects.select_related('job', 'inspector', 'supervisor').order_by('-created_at')[:15]
-    jobs = ProductionJob.objects.all().order_by('-created_at')[:15]
+    jobs = ProductionJob.objects.annotate(inspections_total=Count('inspections')).order_by('-created_at')[:15]
     holds = ProcessHold.objects.select_related('job', 'placed_by', 'released_by').order_by('-placed_at')[:10]
 
     # Overall First-Pass Yield
@@ -402,6 +408,7 @@ def inspection_detail(request, pk):
 
     context = {
         'inspection': inspection,
+        'calculated_result': inspection.calculated_result,
         'photos': photos,
         'nominal_center': nominal_center,
         'tolerance_span': tolerance_span,
@@ -852,16 +859,23 @@ def export_jobs_csv(request):
         'Inspections_Count', 'Active_Holds_Count', 'Cleared_By', 'Cleared_At', 'Created_At'
     ])
 
-    jobs = ProductionJob.objects.select_related('cleared_by').all().order_by('-created_at')
+    jobs = (
+        ProductionJob.objects
+        .select_related('cleared_by')
+        .annotate(
+            inspections_total=Count('inspections', distinct=True),
+            active_holds_total=Count('process_holds', filter=Q(process_holds__is_active=True), distinct=True),
+        )
+        .order_by('-created_at')
+    )
     for job in jobs:
-        active_holds_count = job.process_holds.filter(is_active=True).count()
         writer.writerow([
             job.job_number,
             job.product_name,
             job.target_quantity,
             job.dispatch_status,
-            job.inspections.count(),
-            active_holds_count,
+            job.inspections_total,
+            job.active_holds_total,
             job.cleared_by.username if job.cleared_by else '',
             job.cleared_at.strftime('%Y-%m-%d %H:%M:%S') if job.cleared_at else '',
             job.created_at.strftime('%Y-%m-%d %H:%M:%S')

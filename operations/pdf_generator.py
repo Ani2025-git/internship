@@ -341,7 +341,7 @@ def generate_certificate_pdf(job, inspections, cert_record, block_reasons=None):
             Paragraph(f"<b>{insp.status}</b>", ParagraphStyle('TC_Stat', fontName='Helvetica-Bold', fontSize=7.5, alignment=1, textColor=primary_color)),
         ])
 
-    col_widths = [10 * mm, 38 * mm, 17 * mm, 17 * mm, 19 * mm, 17 * mm, 14 * mm, 25 * mm, 25 * mm]
+    col_widths = [10 * mm, 40 * mm, 18 * mm, 18 * mm, 20 * mm, 18 * mm, 16 * mm, 21 * mm, 21 * mm]
     insp_table = Table(table_rows, colWidths=col_widths, repeatRows=1)
     
     t_style = [

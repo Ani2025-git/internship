@@ -168,7 +168,7 @@
                     <div class="col-sm-6 col-md-3">
                         <div class="p-2 bg-light rounded border">
                             <span class="text-muted small d-block">Offset from Nominal (&Delta;)</span>
-                            <strong class="{% if delta_from_nominal == 0 %}text-success{% elif calculated_result == 'FAIL' %}text-danger{% else %}text-primary{% endif %}">
+                            <strong class="{% if delta_from_nominal == 0 %}text-success{% elif inspection.calculated_result == 'FAIL' %}text-danger{% else %}text-primary{% endif %}">
                                 {% if delta_from_nominal > 0 %}+{% endif %}{{ delta_from_nominal }} mm
                             </strong>
                         </div>

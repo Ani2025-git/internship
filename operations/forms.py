@@ -167,8 +167,8 @@ class InspectionCreateForm(forms.ModelForm):
         if 'sample_unit_number' in self.fields:
             self.fields['sample_unit_number'].required = False
             self.fields['sample_unit_number'].initial = 1
-        # Display jobs that are pending clearance first
-        self.fields['job'].queryset = ProductionJob.objects.all().order_by('dispatch_status', '-created_at')
+        # Display jobs that are pending clearance first ('PENDING' before 'CLEARED')
+        self.fields['job'].queryset = ProductionJob.objects.all().order_by('-dispatch_status', '-created_at')
 
     def clean_sample_unit_number(self):
         val = self.cleaned_data.get('sample_unit_number')
